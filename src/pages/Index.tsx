@@ -1,5 +1,6 @@
 import { RegistrationForm } from '@/components/RegistrationForm';
 import heroImage from '@/assets/hero-bodybuilding.jpg';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   return (
@@ -11,9 +12,11 @@ const Index = () => {
       >
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 text-center text-white">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            NORDESTE LEGENDS
-          </h1>
+          <img
+            src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
+            alt="PB Muscle Arena Logo"
+            className="w-full h-auto max-w-xs mx-auto mb-4"
+          />
           <p className="text-xl md:text-2xl font-medium">
             Sistema de Inscrição Online
           </p>
@@ -39,13 +42,22 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-8 mt-16">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-2xl font-bold mb-2">NORDESTE LEGENDS</h3>
+          <img
+            src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
+            alt="PB Muscle Arena Logo"
+            className="w-full h-auto max-w-[200px] mx-auto mb-2"
+          />
           <p className="text-primary-foreground/80">
             Sistema de Inscrição Online - Evento de Fisiculturismo
           </p>
           <p className="text-sm text-primary-foreground/60 mt-4">
-            © 2024 Nordeste Legends. Todos os direitos reservados.
+            © 2024 PB MUSCLE ARENA. Todos os direitos reservados.
           </p>
+          <div className="mt-2">
+            <Link to="/admin" className="text-primary-foreground/80 hover:underline">
+              Admin
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

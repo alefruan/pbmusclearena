@@ -5,10 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/utils/pdfGenerator';
 
 interface RegistrationData {
+  id?: number;
   // Identificação
   nome: string;
   cpf: string;
@@ -23,7 +25,6 @@ interface RegistrationData {
   // Pesagem e Medições
   altura: string;
   peso: string;
-  dobra: boolean;
   pintura: boolean;
   foto: boolean;
   
@@ -71,7 +72,6 @@ export const RegistrationForm = () => {
     email: '',
     altura: '',
     peso: '',
-    dobra: false,
     pintura: false,
     foto: false,
     genero: 'masculino',
@@ -79,7 +79,7 @@ export const RegistrationForm = () => {
     subcategoria: ''
   });
 
-  const handleInputChange = (field: keyof RegistrationData, value: any) => {
+  const handleInputChange = (field: keyof RegistrationData, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -100,6 +100,12 @@ export const RegistrationForm = () => {
     }
 
     try {
+      const { data, error } = await supabase.from('registrations').insert([formData]).select();
+
+      if (error) {
+        throw error;
+      }
+
       await generatePDF(formData);
       toast({
         title: "Inscrição realizada!",
@@ -108,7 +114,7 @@ export const RegistrationForm = () => {
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao gerar o PDF. Tente novamente.",
+        description: "Erro ao salvar os dados ou gerar o PDF. Tente novamente.",
         variant: "destructive"
       });
     }
@@ -120,7 +126,7 @@ export const RegistrationForm = () => {
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Identificação */}
       <Card className="shadow-card">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground rounded-t-lg">
+        <CardHeader className="bg-yellow-400 text-black rounded-t-lg">
           <CardTitle className="text-xl font-bold">IDENTIFICAÇÃO</CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -220,7 +226,7 @@ export const RegistrationForm = () => {
 
       {/* Pesagem e Medições */}
       <Card className="shadow-card">
-        <CardHeader className="bg-gradient-to-r from-accent to-primary text-accent-foreground rounded-t-lg">
+        <CardHeader className="bg-yellow-400 text-black rounded-t-lg">
           <CardTitle className="text-xl font-bold">PESAGEM E MEDIÇÕES</CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
@@ -250,14 +256,6 @@ export const RegistrationForm = () => {
           <div className="flex flex-wrap gap-6 pt-4">
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="dobra"
-                checked={formData.dobra}
-                onCheckedChange={(checked) => handleInputChange('dobra', checked)}
-              />
-              <Label htmlFor="dobra" className="text-sm font-medium">DOBRA</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
                 id="pintura"
                 checked={formData.pintura}
                 onCheckedChange={(checked) => handleInputChange('pintura', checked)}
@@ -278,7 +276,7 @@ export const RegistrationForm = () => {
 
       {/* Categorias */}
       <Card className="shadow-card">
-        <CardHeader className="bg-gradient-to-r from-primary-glow to-accent text-primary-foreground rounded-t-lg">
+        <CardHeader className="bg-yellow-400 text-black rounded-t-lg">
           <CardTitle className="text-xl font-bold">CATEGORIAS</CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6">

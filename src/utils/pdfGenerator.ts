@@ -12,7 +12,6 @@ interface RegistrationData {
   email: string;
   altura: string;
   peso: string;
-  dobra: boolean;
   pintura: boolean;
   foto: boolean;
   genero: 'feminino' | 'masculino';
@@ -30,7 +29,7 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   // Cabeçalho
   pdf.setTextColor(220, 94, 40); // Cor laranja do tema
   pdf.text('FORMULÁRIO DE INSCRIÇÃO', 105, 20, { align: 'center' });
-  pdf.text('NORDESTE LEGENDS', 105, 30, { align: 'center' });
+  pdf.text('PB MUSCLE ARENA', 105, 30, { align: 'center' });
   
   // Linha decorativa
   pdf.setDrawColor(220, 94, 40);
@@ -41,7 +40,7 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
   pdf.setTextColor(0, 0, 0);
-  const authText = "No ato de inscrição, e para todos os fins de direito, o atleta autoriza à Nordeste Legends e aos fotógrafos do evento o uso de sua imagem para fins de divulgação de todo e qualquer item relacionado à Nordeste Legends, sendo esta uma expressão de sua própria vontade, e nada terá a reclamar a título de direitos relacionados à sua voz e imagem pela Nordeste Legends.";
+  const authText = "No ato de inscrição, e para todos os fins de direito, o atleta autoriza à PB MUSCLE ARENA e aos fotógrafos do evento o uso de sua imagem para fins de divulgação de todo e qualquer item relacionado à PB MUSCLE ARENA, sendo esta uma expressão de sua própria vontade, e nada terá a reclamar a título de direitos relacionados à sua voz e imagem pela PB MUSCLE ARENA.";
   const splitText = pdf.splitTextToSize(authText, 170);
   pdf.text(splitText, 20, 45);
   
@@ -112,33 +111,8 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   // Checkboxes
   yPosition += 5;
   pdf.setFont('helvetica', 'bold');
-  pdf.text('DOBRA: ', 20, yPosition);
-  pdf.rect(50, yPosition - 3, 4, 4);
-  if (data.dobra) pdf.text('X', 51, yPosition);
-  pdf.text(' SIM', 56, yPosition);
-  pdf.rect(75, yPosition - 3, 4, 4);
-  if (!data.dobra) pdf.text('X', 76, yPosition);
-  pdf.text(' NÃO', 81, yPosition);
-  
-  yPosition += 8;
   pdf.text('PINTURA: ', 20, yPosition);
-  pdf.rect(50, yPosition - 3, 4, 4);
-  if (data.pintura) pdf.text('X', 51, yPosition);
-  pdf.text(' SIM', 56, yPosition);
-  pdf.rect(75, yPosition - 3, 4, 4);
-  if (!data.pintura) pdf.text('X', 76, yPosition);
-  pdf.text(' NÃO', 81, yPosition);
   
-  yPosition += 8;
-  pdf.text('FOTO: ', 20, yPosition);
-  pdf.rect(50, yPosition - 3, 4, 4);
-  if (data.foto) pdf.text('X', 51, yPosition);
-  pdf.text(' SIM', 56, yPosition);
-  pdf.rect(75, yPosition - 3, 4, 4);
-  if (!data.foto) pdf.text('X', 76, yPosition);
-  pdf.text(' NÃO', 81, yPosition);
-  
-  yPosition += 20;
   
   // Seção Categorias
   pdf.setFont('helvetica', 'bold');
