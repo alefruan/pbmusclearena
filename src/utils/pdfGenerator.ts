@@ -40,7 +40,7 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
   let yPos = 35;
-  const authText = "No ato de inscrição, e para todos os fins de direito, o atleta autoriza à Nordeste Legends e aos fotógrafos do evento o uso de sua imagem para fins de divulgação de todo e qualquer item relacionado à Nordeste Legends, sendo esta uma expressão de sua própria vontade, e nada terá a reclamar a título de direitos relacionados à sua voz e imagem pela Nordeste Legends.";
+  const authText = "No ato de inscrição, e para todos os fins de direito, o atleta autoriza à PB Muscle Arena e aos fotógrafos do evento o uso de sua imagem para fins de divulgação de todo e qualquer item relacionado à PB Muscle Arena, sendo esta uma expressão de sua própria vontade, e nada terá a reclamar a título de direitos relacionados à sua voz e imagem pela PB Muscle Arena.";
   const splitText = pdf.splitTextToSize(authText, pageWidth - 20);
   pdf.text(splitText, margin, yPos);
 
@@ -297,7 +297,7 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
   pdf.rect(margin, yPos, pageWidth - 2 * margin, 6);
-  pdf.text('Local: ________________, ______ de _______________ de 2023', margin + 2, yPos + 4);
+  pdf.text('Local: ________________, ______ de _______________ de 2025', margin + 2, yPos + 4);
 
   yPos += 6;
 
