@@ -175,20 +175,16 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   const pinturaStartX = margin + 40;
   pdf.text('(', pinturaStartX, yPos + 4);
   pdf.rect(pinturaStartX + 5, yPos + 1, 3, 3);
-  if (data.pintura) pdf.text('X', pinturaStartX + 6, yPos + 3);
   pdf.text(') SIM    (', pinturaStartX + 12, yPos + 4);
   pdf.rect(pinturaStartX + 28, yPos + 1, 3, 3);
-  if (!data.pintura) pdf.text('X', pinturaStartX + 29, yPos + 3);
   pdf.text(') NÃO', pinturaStartX + 35, yPos + 4);
 
   // Checkboxes para FOTO
   const fotoStartX = margin + pinturaWidth + 40;
   pdf.text('(', fotoStartX, yPos + 4);
   pdf.rect(fotoStartX + 5, yPos + 1, 3, 3);
-  if (data.foto) pdf.text('X', fotoStartX + 6, yPos + 3);
   pdf.text(') SIM    (', fotoStartX + 12, yPos + 4);
   pdf.rect(fotoStartX + 28, yPos + 1, 3, 3);
-  if (!data.foto) pdf.text('X', fotoStartX + 29, yPos + 3);
   pdf.text(') NÃO', fotoStartX + 35, yPos + 4);
 
   yPos += measureRowHeight + 2;
@@ -338,20 +334,16 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   const reciboStartX = margin + 105;
   pdf.text('(', reciboStartX, yPos + 7);
   pdf.rect(reciboStartX + 3, yPos + 3, 3, 3);
-  if (data.pintura) pdf.text('X', reciboStartX + 4, yPos + 6);
   pdf.text(') SIM  (', reciboStartX + 8, yPos + 7);
   pdf.rect(reciboStartX + 18, yPos + 3, 3, 3);
-  if (!data.pintura) pdf.text('X', reciboStartX + 19, yPos + 6);
   pdf.text(') NÃO', reciboStartX + 23, yPos + 7);
 
   // Checkboxes FOTO no recibo
   const fotoReciboX = margin + 155;
   pdf.text('(', fotoReciboX, yPos + 7);
   pdf.rect(fotoReciboX + 3, yPos + 3, 3, 3);
-  if (data.foto) pdf.text('X', fotoReciboX + 4, yPos + 6);
   pdf.text(') SIM  (', fotoReciboX + 8, yPos + 7);
   pdf.rect(fotoReciboX + 18, yPos + 3, 3, 3);
-  if (!data.foto) pdf.text('X', fotoReciboX + 19, yPos + 6);
   pdf.text(') NÃO', fotoReciboX + 23, yPos + 7);
 
   yPos += 8;

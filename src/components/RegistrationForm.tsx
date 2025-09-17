@@ -90,7 +90,7 @@ export const RegistrationForm = () => {
     e.preventDefault();
     
     // Validação básica
-    if (!formData.nome || !formData.cpf || !formData.email || !formData.categoria) {
+    if (!formData.nome || !formData.cpf || !formData.email) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -224,116 +224,6 @@ export const RegistrationForm = () => {
         </CardContent>
       </Card>
 
-      {/* Pesagem e Medições */}
-      <Card className="shadow-card">
-        <CardHeader className="bg-yellow-400 text-black rounded-t-lg">
-          <CardTitle className="text-xl font-bold">PESAGEM E MEDIÇÕES</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="altura" className="text-sm font-medium">Altura (cm)</Label>
-              <Input
-                id="altura"
-                value={formData.altura}
-                onChange={(e) => handleInputChange('altura', e.target.value)}
-                className="mt-1"
-                placeholder="170"
-              />
-            </div>
-            <div>
-              <Label htmlFor="peso" className="text-sm font-medium">Peso (kg)</Label>
-              <Input
-                id="peso"
-                value={formData.peso}
-                onChange={(e) => handleInputChange('peso', e.target.value)}
-                className="mt-1"
-                placeholder="70"
-              />
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-6 pt-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="pintura"
-                checked={formData.pintura}
-                onCheckedChange={(checked) => handleInputChange('pintura', checked)}
-              />
-              <Label htmlFor="pintura" className="text-sm font-medium">PINTURA</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="foto"
-                checked={formData.foto}
-                onCheckedChange={(checked) => handleInputChange('foto', checked)}
-              />
-              <Label htmlFor="foto" className="text-sm font-medium">FOTO</Label>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Categorias */}
-      <Card className="shadow-card">
-        <CardHeader className="bg-yellow-400 text-black rounded-t-lg">
-          <CardTitle className="text-xl font-bold">CATEGORIAS</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          {/* Gênero */}
-          <div>
-            <Label className="text-sm font-medium mb-3 block">Gênero *</Label>
-            <RadioGroup
-              value={formData.genero}
-              onValueChange={(value) => handleInputChange('genero', value)}
-              className="flex gap-6"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="masculino" id="masculino" />
-                <Label htmlFor="masculino">Masculino</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="feminino" id="feminino" />
-                <Label htmlFor="feminino">Feminino</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Categoria */}
-          <div>
-            <Label className="text-sm font-medium mb-3 block">Categoria *</Label>
-            <RadioGroup
-              value={formData.categoria}
-              onValueChange={(value) => handleInputChange('categoria', value)}
-              className="grid grid-cols-2 md:grid-cols-3 gap-3"
-            >
-              {categorias.map((categoria) => (
-                <div key={categoria} className="flex items-center space-x-2">
-                  <RadioGroupItem value={categoria} id={categoria} />
-                  <Label htmlFor={categoria} className="text-sm">{categoria}</Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Subcategoria */}
-          <div>
-            <Label className="text-sm font-medium mb-3 block">Subcategoria</Label>
-            <RadioGroup
-              value={formData.subcategoria}
-              onValueChange={(value) => handleInputChange('subcategoria', value)}
-              className="grid grid-cols-2 md:grid-cols-3 gap-3"
-            >
-              {SUBCATEGORIAS.map((subcategoria) => (
-                <div key={subcategoria} className="flex items-center space-x-2">
-                  <RadioGroupItem value={subcategoria} id={subcategoria} />
-                  <Label htmlFor={subcategoria} className="text-sm">{subcategoria}</Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="flex justify-center pt-6">
         <Button
