@@ -204,79 +204,177 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   const categoryColWidth = (pageWidth - 2 * margin - 80) / 6; // 6 subcategorias
   const subcategoryHeaders = ['TEEN', 'ESTREANT.', 'NOVICE', 'OPEN', 'MASTER', 'CLASSE'];
 
+  // Subcategorias específicas para masculinas
+  const classicMensSubcategories = ['MASTER +35', 'ATÉ 1,70M', 'ATÉ 1,74M', 'ATÉ 1,78M', 'ACIMA 1,78M', ''];
+  const bodybuildingSubcategories = ['MASTER +35', 'ATÉ 70KG', 'ATÉ 75KG', 'ATÉ 80KG', 'ATÉ 90KG', 'ATÉ 100KG', 'ACIMA 100KG'];
+
+  // Subcategorias específicas para femininas
+  const bikiniSubcategories = ['ATÉ 1,60M', 'ATÉ 1,65M', 'ACIMA 1,65M'];
+  const wellnessSubcategories = ['MASTER +35', 'ATÉ 1,58M', 'ATÉ 1,65M', 'ACIMA 1,65M'];
+  const fitmodelSubcategories = ['ÚNICA'];
+
+  // Ajustar largura das colunas para acomodar mais subcategorias do bodybuilding
+  const bodybuildingColWidth = (pageWidth - 2 * margin - 80) / 7; // 7 subcategorias para bodybuilding
+  const regularColWidth = categoryColWidth;
+
   // Cabeçalho da tabela de categorias femininas
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(9);
 
-  // Header FEMININAS
-  pdf.rect(margin, yPos, 80, categoryRowHeight);
-  pdf.text('FEMININAS', margin + 2, yPos + 4);
+  // Larguras específicas para categorias femininas
+  const bikiniColWidth = (pageWidth - 2 * margin - 80) / 3; // 3 subcategorias
+  const wellnessColWidth = (pageWidth - 2 * margin - 80) / 4; // 4 subcategorias
+  const fitmodelColWidth = (pageWidth - 2 * margin - 80) / 1; // 1 subcategoria
 
-  // Headers das subcategorias
-  subcategoryHeaders.forEach((header, index) => {
-    pdf.rect(margin + 80 + (index * categoryColWidth), yPos, categoryColWidth, categoryRowHeight);
-    pdf.text(header, margin + 82 + (index * categoryColWidth), yPos + 4);
+  // BIKINI FITNESS
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+  pdf.text('BIKINI FITNESS', margin + 2, yPos + 4);
+
+  bikiniSubcategories.forEach((header, index) => {
+    pdf.rect(margin + 80 + (index * bikiniColWidth), yPos, bikiniColWidth, categoryRowHeight);
+    pdf.setFontSize(7);
+    pdf.text(header, margin + 82 + (index * bikiniColWidth), yPos + 4);
   });
 
   yPos += categoryRowHeight;
 
-  // Categorias femininas
-  const femCategories = ['BIKINI FITNESS', 'WELLNESS FITNESS', 'FITMODEL'];
+  // Linha de células para marcar X - Bikini
+  pdf.setFont('helvetica', 'normal');
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
 
-  femCategories.forEach(category => {
-    pdf.setFont('helvetica', 'normal');
-    pdf.rect(margin, yPos, 80, categoryRowHeight);
-    pdf.text(category, margin + 2, yPos + 4);
-
-    // Células das subcategorias
-    subcategoryHeaders.forEach((subcat, index) => {
-      pdf.rect(margin + 80 + (index * categoryColWidth), yPos, categoryColWidth, categoryRowHeight);
-      // Marcar X se categoria e subcategoria correspondem
-      if (data.genero === 'feminino' && data.categoria === category && data.subcategoria === subcat.replace('.', '')) {
-        pdf.text('X', margin + 80 + (index * categoryColWidth) + categoryColWidth/2 - 2, yPos + 4);
-      }
-    });
-
-    yPos += categoryRowHeight;
+  bikiniSubcategories.forEach((subcat, index) => {
+    pdf.rect(margin + 80 + (index * bikiniColWidth), yPos, bikiniColWidth, categoryRowHeight);
+    if (data.genero === 'feminino' && data.categoria === 'BIKINI FITNESS' && data.subcategoria === subcat) {
+      pdf.text('X', margin + 80 + (index * bikiniColWidth) + bikiniColWidth/2 - 2, yPos + 4);
+    }
   });
 
-  yPos += 2;
+  yPos += categoryRowHeight;
+
+  // WELLNESS FITNESS
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+  pdf.text('WELLNESS FITNESS', margin + 2, yPos + 4);
+
+  wellnessSubcategories.forEach((header, index) => {
+    pdf.rect(margin + 80 + (index * wellnessColWidth), yPos, wellnessColWidth, categoryRowHeight);
+    pdf.setFontSize(6);
+    pdf.text(header, margin + 82 + (index * wellnessColWidth), yPos + 4);
+  });
+
+  yPos += categoryRowHeight;
+
+  // Linha de células para marcar X - Wellness
+  pdf.setFont('helvetica', 'normal');
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+
+  wellnessSubcategories.forEach((subcat, index) => {
+    pdf.rect(margin + 80 + (index * wellnessColWidth), yPos, wellnessColWidth, categoryRowHeight);
+    if (data.genero === 'feminino' && data.categoria === 'WELLNESS FITNESS' && data.subcategoria === subcat) {
+      pdf.text('X', margin + 80 + (index * wellnessColWidth) + wellnessColWidth/2 - 2, yPos + 4);
+    }
+  });
+
+  yPos += categoryRowHeight;
+
+  // FITMODEL
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+  pdf.text('FITMODEL', margin + 2, yPos + 4);
+
+  fitmodelSubcategories.forEach((header, index) => {
+    pdf.rect(margin + 80 + (index * fitmodelColWidth), yPos, fitmodelColWidth, categoryRowHeight);
+    pdf.setFontSize(8);
+    pdf.text(header, margin + 82 + (index * fitmodelColWidth), yPos + 4);
+  });
+
+  yPos += categoryRowHeight;
+
+  // Linha de células para marcar X - Fitmodel
+  pdf.setFont('helvetica', 'normal');
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+
+  fitmodelSubcategories.forEach((subcat, index) => {
+    pdf.rect(margin + 80 + (index * fitmodelColWidth), yPos, fitmodelColWidth, categoryRowHeight);
+    if (data.genero === 'feminino' && data.categoria === 'FITMODEL' && data.subcategoria === subcat) {
+      pdf.text('X', margin + 80 + (index * fitmodelColWidth) + fitmodelColWidth/2 - 2, yPos + 4);
+    }
+  });
+
+  yPos += categoryRowHeight + 4; // Mais espaçamento entre seções feminina e masculina
 
   // Tabela de categorias masculinas
   pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
 
-  // Header MASCULINAS
+  // Header principal MASCULINAS
   pdf.rect(margin, yPos, 80, categoryRowHeight);
   pdf.text('MASCULINAS', margin + 2, yPos + 4);
 
-  // Headers das subcategorias (repetir)
-  subcategoryHeaders.forEach((header, index) => {
-    pdf.rect(margin + 80 + (index * categoryColWidth), yPos, categoryColWidth, categoryRowHeight);
-    pdf.text(header, margin + 82 + (index * categoryColWidth), yPos + 4);
+  // Headers das subcategorias - usar as do Classic/Men's Physique como padrão
+  classicMensSubcategories.slice(0, -1).forEach((header, index) => { // Remove o último elemento vazio
+    pdf.rect(margin + 80 + (index * regularColWidth), yPos, regularColWidth, categoryRowHeight);
+    pdf.setFontSize(6);
+    pdf.text(header, margin + 81 + (index * regularColWidth), yPos + 4);
   });
 
   yPos += categoryRowHeight;
 
-  // Categorias masculinas
-  const mascCategories = ['BODYBUILDING', 'CLASSIC PHYSIQUE', 'MEN\'S PHYSIQUE'];
+  // Classic Physique
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8);
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+  pdf.text('CLASSIC PHYSIQUE', margin + 2, yPos + 4);
 
-  mascCategories.forEach(category => {
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.rect(margin, yPos, 80, categoryRowHeight);
-    pdf.text(category, margin + 2, yPos + 4);
-
-    // Células das subcategorias
-    subcategoryHeaders.forEach((subcat, index) => {
-      pdf.rect(margin + 80 + (index * categoryColWidth), yPos, categoryColWidth, categoryRowHeight);
-      // Marcar X se categoria e subcategoria correspondem
-      if (data.genero === 'masculino' && data.categoria === category && data.subcategoria === subcat.replace('.', '')) {
-        pdf.text('X', margin + 80 + (index * categoryColWidth) + categoryColWidth/2 - 2, yPos + 4);
-      }
-    });
-
-    yPos += categoryRowHeight;
+  classicMensSubcategories.slice(0, -1).forEach((subcat, index) => {
+    pdf.rect(margin + 80 + (index * regularColWidth), yPos, regularColWidth, categoryRowHeight);
+    if (data.genero === 'masculino' && data.categoria === 'CLASSIC PHYSIQUE' && data.subcategoria === subcat) {
+      pdf.text('X', margin + 80 + (index * regularColWidth) + regularColWidth/2 - 2, yPos + 4);
+    }
   });
+
+  yPos += categoryRowHeight;
+
+  // Men's Physique
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+  pdf.text('MEN\'S PHYSIQUE', margin + 2, yPos + 4);
+
+  classicMensSubcategories.slice(0, -1).forEach((subcat, index) => {
+    pdf.rect(margin + 80 + (index * regularColWidth), yPos, regularColWidth, categoryRowHeight);
+    if (data.genero === 'masculino' && data.categoria === 'MEN\'S PHYSIQUE' && data.subcategoria === subcat) {
+      pdf.text('X', margin + 80 + (index * regularColWidth) + regularColWidth/2 - 2, yPos + 4);
+    }
+  });
+
+  yPos += categoryRowHeight;
+
+  // Bodybuilding - linha separada com headers específicos
+  pdf.setFont('helvetica', 'bold');
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+  pdf.text('BODYBUILDING', margin + 2, yPos + 4);
+
+  bodybuildingSubcategories.forEach((header, index) => {
+    pdf.rect(margin + 80 + (index * bodybuildingColWidth), yPos, bodybuildingColWidth, categoryRowHeight);
+    pdf.setFontSize(6);
+    pdf.text(header, margin + 81 + (index * bodybuildingColWidth), yPos + 4);
+  });
+
+  yPos += categoryRowHeight;
+
+  // Linha de células para marcar X no Bodybuilding
+  pdf.setFont('helvetica', 'normal');
+  pdf.rect(margin, yPos, 80, categoryRowHeight);
+
+  bodybuildingSubcategories.forEach((subcat, index) => {
+    pdf.rect(margin + 80 + (index * bodybuildingColWidth), yPos, bodybuildingColWidth, categoryRowHeight);
+    if (data.genero === 'masculino' && data.categoria === 'BODYBUILDING' && data.subcategoria === subcat) {
+      pdf.text('X', margin + 80 + (index * bodybuildingColWidth) + bodybuildingColWidth/2 - 2, yPos + 4);
+    }
+  });
+
+  yPos += categoryRowHeight;
 
   yPos += 2;
   
