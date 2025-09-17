@@ -221,7 +221,7 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   yPos += categoryRowHeight;
 
   // Categorias femininas
-  const femCategories = ['ESPECIAL', 'BIKINI', 'FIGURE', 'WOMEN\'S PHYSIQUE', 'WELLNESS'];
+  const femCategories = ['BIKINI FITNESS', 'WELLNESS FITNESS', 'FITMODEL'];
 
   femCategories.forEach(category => {
     pdf.setFont('helvetica', 'normal');
@@ -258,7 +258,7 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   yPos += categoryRowHeight;
 
   // Categorias masculinas
-  const mascCategories = ['BODYSHAPE', 'ESPECIAL', 'BODYBUILDING', 'CLASSIC PHYSIQUE', 'MEN\'S PHYSIQUE'];
+  const mascCategories = ['BODYBUILDING', 'CLASSIC PHYSIQUE', 'MEN\'S PHYSIQUE'];
 
   mascCategories.forEach(category => {
     pdf.setFont('helvetica', 'normal');
