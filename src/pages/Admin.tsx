@@ -196,7 +196,9 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
     try {
       const { error } = await supabase
         .from('settings')
-        .upsert([{ key: 'regulamento', value: regulamentoTexto }]);
+        .upsert([{ key: 'regulamento', value: regulamentoTexto }], {
+          onConflict: 'key'
+        });
 
       if (error) {
         console.error('Error saving regulation:', error);
