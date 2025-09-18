@@ -5,6 +5,7 @@ import { generatePDF } from '@/utils/pdfGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,8 @@ const Admin: React.FC = () => {
   const [regulamentoTexto, setRegulamentoTexto] = useState('');
   const [isRegulamentoModalOpen, setIsRegulamentoModalOpen] = useState(false);
   const [regulamentoLoading, setRegulamentoLoading] = useState(false);
+  const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
+  const [inscricoesLoading, setInscricoesLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -85,6 +88,7 @@ const Admin: React.FC = () => {
   useEffect(() => {
     fetchRegistrations();
     fetchRegulamento();
+    fetchInscricoesStatus();
   }, []);
 
   const fetchRegulamento = async () => {
@@ -130,6 +134,57 @@ const Admin: React.FC = () => {
 4.2. Cada participante é responsável por sua própria saúde e condicionamento físico.
 
 PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
+  };
+
+  const fetchInscricoesStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'inscricoes_abertas')
+        .single();
+
+      if (error) {
+        console.error('Error fetching inscricoes status:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.settings" does not exist')) {
+          console.warn('Tabela settings não encontrada. Mantendo inscrições abertas por padrão.');
+        }
+        setInscricoesAbertas(true);
+      } else {
+        setInscricoesAbertas(data?.value === 'true');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setInscricoesAbertas(true);
+    }
+  };
+
+  const handleInscricoesToggle = async (checked: boolean) => {
+    setInscricoesLoading(true);
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert([{ key: 'inscricoes_abertas', value: checked.toString() }], {
+          onConflict: 'key'
+        });
+
+      if (error) {
+        console.error('Error saving inscricoes status:', error);
+        if (error.message.includes('relation "public.settings" does not exist')) {
+          alert('Tabela settings não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao salvar o status das inscrições: ' + error.message);
+        }
+      } else {
+        setInscricoesAbertas(checked);
+        alert(`Inscrições ${checked ? 'abertas' : 'fechadas'} com sucesso!`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro inesperado ao salvar o status das inscrições. Verifique a conexão com o banco.');
+    } finally {
+      setInscricoesLoading(false);
+    }
   };
 
   const handleRegulamentoEdit = () => {
@@ -227,6 +282,26 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
             Editar Regulamento
           </Button>
           <Button onClick={handleLogout}>Logout</Button>
+        </div>
+      </div>
+
+      <div className="mb-6 p-4 bg-card rounded-lg border">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Status das Inscrições</h3>
+            <p className="text-sm text-muted-foreground">
+              {inscricoesAbertas ? 'As inscrições estão abertas' : 'As inscrições estão fechadas'}
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">Fechado</span>
+            <Switch
+              checked={inscricoesAbertas}
+              onCheckedChange={handleInscricoesToggle}
+              disabled={inscricoesLoading}
+            />
+            <span className="text-sm">Aberto</span>
+          </div>
         </div>
       </div>
       <div className="mb-4">

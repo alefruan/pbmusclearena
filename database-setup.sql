@@ -121,6 +121,12 @@ PB MUSCLE ARENA
 © 2024 - Todos os direitos reservados'
 ) ON CONFLICT (key) DO NOTHING;
 
+-- Inserir valor padrão para o status das inscrições (abertas por padrão)
+INSERT INTO public.settings (key, value) VALUES (
+    'inscricoes_abertas',
+    'true'
+) ON CONFLICT (key) DO NOTHING;
+
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
