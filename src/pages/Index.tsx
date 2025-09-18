@@ -93,10 +93,10 @@ const Index = () => {
                   Inscrições Fechadas
                 </h2>
                 <p className="text-lg text-red-700 mb-6">
-                  Infelizmente o período de inscrições para o evento foi encerrado.
+                  Infelizmente o período de inscrições não está disponível no momento.
                 </p>
                 <p className="text-red-600">
-                  Acompanhe nossas redes sociais para ficar sabendo de novos eventos e oportunidades!
+                  Acompanhe nosso site para ficar por dentro do periodo de inscrição!
                 </p>
               </div>
             </div>
