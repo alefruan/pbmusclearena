@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/utils/pdfGenerator';
@@ -21,17 +22,20 @@ interface RegistrationData {
   uf: string;
   telefone: string;
   email: string;
-  
+
   // Pesagem e Medições
   altura: string;
   peso: string;
   pintura: boolean;
   foto: boolean;
-  
+
   // Categorias
   genero: 'feminino' | 'masculino';
   categoria: string;
   subcategoria: string;
+
+  // Regulamento
+  regulamentoAceito: boolean;
 }
 
 const CATEGORIAS_FEMININAS = [
@@ -70,13 +74,14 @@ export const RegistrationForm = () => {
     uf: '',
     telefone: '',
     email: '',
-    altura: '',
-    peso: '',
+    altura: '0',
+    peso: '0',
     pintura: false,
     foto: false,
     genero: 'masculino',
-    categoria: '',
-    subcategoria: ''
+    categoria: 'BODYBUILDING',
+    subcategoria: 'OPEN',
+    regulamentoAceito: false
   });
 
   const handleInputChange = (field: keyof RegistrationData, value: string | boolean) => {
@@ -90,37 +95,119 @@ export const RegistrationForm = () => {
     e.preventDefault();
     
     // Validação básica
-    if (!formData.nome || !formData.cpf || !formData.email) {
+    if (!formData.nome || !formData.cpf || !formData.email || !formData.regulamentoAceito) {
       toast({
         title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios.",
+        description: "Por favor, preencha todos os campos obrigatórios e aceite o regulamento do evento.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validação de CPF (formato básico)
+    if (formData.cpf.length < 11) {
+      toast({
+        title: "CPF inválido",
+        description: "Por favor, insira um CPF válido com 11 dígitos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validação de email
+    if (!formData.email.includes('@')) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, insira um email válido.",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      const { data, error } = await supabase.from('registrations').insert([formData]).select();
+      console.log('Sending data to database:', formData);
+
+      // Remove campos que não existem no banco de dados e limpa campos de categoria
+      const { regulamentoAceito, genero, categoria, subcategoria, ...dataForDB } = formData;
+
+      // Adiciona campos de categoria como vazios para o banco
+      const dataForDBWithEmptyCategories = {
+        ...dataForDB,
+        genero: '',
+        categoria: '',
+        subcategoria: ''
+      };
+
+      console.log('Data for database (without regulamentoAceito and with empty categories):', dataForDBWithEmptyCategories);
+
+      const { data, error } = await supabase.from('registrations').insert([dataForDBWithEmptyCategories]).select();
 
       if (error) {
-        throw error;
+        console.error('Database error details:', error);
+
+        if (error.message.includes('relation "public.registrations" does not exist')) {
+          console.warn('Database not configured, generating PDF only');
+          try {
+            await generatePDF(formData);
+            toast({
+              title: "PDF gerado!",
+              description: "Como o banco não está configurado, apenas o PDF foi gerado. Configure o banco para salvar os dados.",
+              variant: "default"
+            });
+            return;
+          } catch (pdfError) {
+            console.error('PDF generation error:', pdfError);
+            toast({
+              title: "Erro completo",
+              description: "Banco não configurado E erro ao gerar PDF. Configure o banco primeiro.",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
+
+        if (error.code === '23502') {
+          toast({
+            title: "Erro de validação",
+            description: `Campo obrigatório não preenchido: ${error.details}`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        toast({
+          title: "Erro no banco de dados",
+          description: `${error.message} (Código: ${error.code})`,
+          variant: "destructive"
+        });
+        return;
       }
 
-      await generatePDF(formData);
-      toast({
-        title: "Inscrição realizada!",
-        description: "PDF gerado com sucesso. Verifique os downloads.",
-      });
+      console.log('Data saved successfully:', data);
+
+      try {
+        await generatePDF(formData);
+        toast({
+          title: "Inscrição realizada!",
+          description: "PDF gerado com sucesso. Verifique os downloads.",
+        });
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        toast({
+          title: "Dados salvos, mas erro no PDF",
+          description: "Inscrição salva com sucesso, mas houve erro ao gerar o PDF.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
+      console.error('Unexpected registration error:', error);
       toast({
-        title: "Erro",
-        description: "Erro ao salvar os dados ou gerar o PDF. Tente novamente.",
+        title: "Erro inesperado",
+        description: "Erro inesperado ao processar inscrição. Verifique o console para detalhes.",
         variant: "destructive"
       });
     }
   };
-
-  const categorias = formData.genero === 'feminino' ? CATEGORIAS_FEMININAS : CATEGORIAS_MASCULINAS;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -224,6 +311,31 @@ export const RegistrationForm = () => {
         </CardContent>
       </Card>
 
+      {/* Aceitação do Regulamento */}
+      <Card className="shadow-card">
+        <CardContent className="p-6">
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="regulamento"
+              checked={formData.regulamentoAceito}
+              onCheckedChange={(checked) => handleInputChange('regulamentoAceito', checked === true)}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <Label htmlFor="regulamento" className="text-sm font-medium cursor-pointer">
+                Li e aceito o{' '}
+                <Link to="/regulamento" className="text-primary hover:underline font-semibold" target="_blank">
+                  regulamento do evento
+                </Link>{' '}
+                *
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                É obrigatório aceitar o regulamento para realizar a inscrição
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex justify-center pt-6">
         <Button

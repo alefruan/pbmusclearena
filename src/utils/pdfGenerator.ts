@@ -156,8 +156,8 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   pdf.text('IDADE:', margin + col1Width + col2Width + 2, yPos + 4);
 
   pdf.setFont('helvetica', 'normal');
-  if (data.altura) pdf.text(data.altura, margin + 30, yPos + 4);
-  if (data.peso) pdf.text(data.peso, margin + col1Width + 25, yPos + 4);
+  if (data.altura && data.altura !== '0') pdf.text(data.altura, margin + 30, yPos + 4);
+  if (data.peso && data.peso !== '0') pdf.text(data.peso, margin + col1Width + 25, yPos + 4);
   if (data.idade) pdf.text(data.idade, margin + col1Width + col2Width + 28, yPos + 4);
 
   yPos += measureRowHeight;

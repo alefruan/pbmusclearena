@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { generatePDF } from '@/utils/pdfGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, X } from 'lucide-react';
+import { Pencil, X, FileText } from 'lucide-react';
 
 interface RegistrationData {
   id?: number;
@@ -34,13 +35,13 @@ interface RegistrationData {
   uf: string;
   telefone: string;
   email: string;
-  
+
   // Pesagem e Medições
   altura: string;
   peso: string;
   pintura: boolean;
   foto: boolean;
-  
+
   // Categorias
   genero: 'feminino' | 'masculino';
   categoria: string;
@@ -54,6 +55,9 @@ const Admin: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [regulamentoTexto, setRegulamentoTexto] = useState('');
+  const [isRegulamentoModalOpen, setIsRegulamentoModalOpen] = useState(false);
+  const [regulamentoLoading, setRegulamentoLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -62,17 +66,101 @@ const Admin: React.FC = () => {
   };
 
   const fetchRegistrations = async () => {
-    const { data, error } = await supabase.from('registrations').select('*');
-    if (error) {
-      console.error('Error fetching registrations:', error);
-    } else {
-      setRegistrations(data as RegistrationData[]);
+    try {
+      const { data, error } = await supabase.from('registrations').select('*');
+      if (error) {
+        console.error('Error fetching registrations:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.registrations" does not exist')) {
+          alert('Tabela de registrations não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        }
+      } else {
+        setRegistrations(data as RegistrationData[]);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('Erro inesperado ao buscar registrations. Verifique a conexão com o banco.');
     }
   };
 
   useEffect(() => {
     fetchRegistrations();
+    fetchRegulamento();
   }, []);
+
+  const fetchRegulamento = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'regulamento')
+        .single();
+
+      if (error) {
+        console.error('Error fetching regulation:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.settings" does not exist')) {
+          console.warn('Tabela settings não encontrada. Usando regulamento padrão.');
+        }
+        setRegulamentoTexto(getDefaultRegulamento());
+      } else {
+        setRegulamentoTexto(data?.value || getDefaultRegulamento());
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setRegulamentoTexto(getDefaultRegulamento());
+    }
+  };
+
+  const getDefaultRegulamento = () => {
+    return `REGULAMENTO DO EVENTO DE FISICULTURISMO - PB MUSCLE ARENA
+
+1. DISPOSIÇÕES GERAIS
+1.1. O presente regulamento tem por objetivo estabelecer as regras e condições para participação no evento de fisiculturismo promovido pela PB MUSCLE ARENA.
+1.2. A participação no evento implica na aceitação integral deste regulamento.
+
+2. INSCRIÇÕES
+2.1. As inscrições deverão ser realizadas exclusivamente através do sistema online disponibilizado.
+2.2. O participante deverá preencher corretamente todos os dados solicitados no formulário de inscrição.
+
+3. CATEGORIAS
+3.1. CATEGORIAS FEMININAS: BIKINI, FIGURE, WOMEN'S PHYSIQUE, WELLNESS
+3.2. CATEGORIAS MASCULINAS: BODYSHAPE, ESPECIAL, BODYBUILDING, CLASSIC PHYSIQUE, MEN'S PHYSIQUE
+
+4. RESPONSABILIDADES
+4.1. A organização não se responsabiliza por objetos perdidos ou danificados durante o evento.
+4.2. Cada participante é responsável por sua própria saúde e condicionamento físico.
+
+PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
+  };
+
+  const handleRegulamentoEdit = () => {
+    setIsRegulamentoModalOpen(true);
+  };
+
+  const handleRegulamentoSave = async () => {
+    setRegulamentoLoading(true);
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert([{ key: 'regulamento', value: regulamentoTexto }]);
+
+      if (error) {
+        console.error('Error saving regulation:', error);
+        if (error.message.includes('relation "public.settings" does not exist')) {
+          alert('Tabela settings não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao salvar o regulamento: ' + error.message);
+        }
+      } else {
+        alert('Regulamento salvo com sucesso!');
+        setIsRegulamentoModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro inesperado ao salvar o regulamento. Verifique a conexão com o banco.');
+    } finally {
+      setRegulamentoLoading(false);
+    }
+  };
 
   const handleEditClick = (registration: RegistrationData) => {
     setEditingRegistration(registration);
@@ -133,7 +221,13 @@ const Admin: React.FC = () => {
       />
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Painel Administrativo</h1>
-        <Button onClick={handleLogout}>Logout</Button>
+        <div className="flex gap-2">
+          <Button onClick={handleRegulamentoEdit} variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Editar Regulamento
+          </Button>
+          <Button onClick={handleLogout}>Logout</Button>
+        </div>
       </div>
       <div className="mb-4">
         <Input
@@ -149,8 +243,8 @@ const Admin: React.FC = () => {
             <tr>
               <th className="py-2 px-4 border-b">Nome</th>
               <th className="py-2 px-4 border-b">CPF</th>
-              <th className="py-2 px-4 border-b">Categoria</th>
-              <th className="py-2 px-4 border-b">Subcategoria</th>
+              <th className="py-2 px-4 border-b">Telefone</th>
+              <th className="py-2 px-4 border-b">Email</th>
               <th className="py-2 px-4 border-b">Ações</th>
             </tr>
           </thead>
@@ -159,8 +253,8 @@ const Admin: React.FC = () => {
               <tr key={registration.id}>
                 <td className="py-2 px-4 border-b">{registration.nome}</td>
                 <td className="py-2 px-4 border-b">{registration.cpf}</td>
-                <td className="py-2 px-4 border-b">{registration.categoria}</td>
-                <td className="py-2 px-4 border-b">{registration.subcategoria}</td>
+                <td className="py-2 px-4 border-b">{registration.telefone}</td>
+                <td className="py-2 px-4 border-b">{registration.email}</td>
                 <td className="py-2 px-4 border-b">
                   <Button onClick={() => generatePDF(registration)}>Gerar PDF</Button>
                   <Button onClick={() => handleEditClick(registration)} className="ml-2">
@@ -225,6 +319,31 @@ const Admin: React.FC = () => {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Modal para editar regulamento */}
+      <Dialog open={isRegulamentoModalOpen} onOpenChange={setIsRegulamentoModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Editar Regulamento do Evento</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            <Textarea
+              value={regulamentoTexto}
+              onChange={(e) => setRegulamentoTexto(e.target.value)}
+              placeholder="Digite o texto do regulamento..."
+              className="h-full min-h-[400px] resize-none"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsRegulamentoModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleRegulamentoSave} disabled={regulamentoLoading}>
+              {regulamentoLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
