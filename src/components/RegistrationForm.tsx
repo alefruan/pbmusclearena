@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/utils/pdfGenerator';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 interface RegistrationData {
   id?: number;
@@ -64,6 +65,7 @@ const SUBCATEGORIAS = [
 
 export const RegistrationForm = () => {
   const { toast } = useToast();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [formData, setFormData] = useState<RegistrationData>({
     nome: '',
     cpf: '',
@@ -84,7 +86,30 @@ export const RegistrationForm = () => {
     regulamentoAceito: false
   });
 
+  const formatCPF = (cpf: string) => {
+    const numericCPF = cpf.replace(/\D/g, '').slice(0, 11);
+    return numericCPF
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+
+  const formatTelefone = (telefone: string) => {
+    const numericTel = telefone.replace(/\D/g, '').slice(0, 11);
+    return numericTel
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2');
+  };
+
   const handleInputChange = (field: keyof RegistrationData, value: string | boolean) => {
+    if (typeof value === 'string') {
+      if (field === 'cpf') {
+        value = formatCPF(value);
+      } else if (field === 'telefone') {
+        value = formatTelefone(value);
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -93,19 +118,43 @@ export const RegistrationForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validação básica
-    if (!formData.nome || !formData.cpf || !formData.email || !formData.regulamentoAceito) {
+    if (!formData.nome || !formData.cpf || !formData.rg || !formData.idade || !formData.endereco || !formData.cidade || !formData.uf || !formData.telefone || !formData.email || !formData.regulamentoAceito) {
       toast({
         title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios e aceite o regulamento do evento.",
+        description: "Por favor, preencha todos os campos obrigatórios da identificação e aceite o regulamento do evento.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificação do reCAPTCHA
+    if (!executeRecaptcha) {
+      toast({
+        title: "Erro de segurança",
+        description: "reCAPTCHA não está disponível. Tente recarregar a página.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const recaptchaToken = await executeRecaptcha('submit');
+      console.log('reCAPTCHA token:', recaptchaToken);
+    } catch (error) {
+      console.error('reCAPTCHA error:', error);
+      toast({
+        title: "Erro de segurança",
+        description: "Falha na verificação de segurança. Tente novamente.",
         variant: "destructive"
       });
       return;
     }
 
     // Validação de CPF (formato básico)
-    if (formData.cpf.length < 11) {
+    const numericCPF = formData.cpf.replace(/\D/g, '');
+    if (numericCPF.length < 11) {
       toast({
         title: "CPF inválido",
         description: "Por favor, insira um CPF válido com 11 dígitos.",
@@ -130,9 +179,16 @@ export const RegistrationForm = () => {
       // Remove campos que não existem no banco de dados e limpa campos de categoria
       const { regulamentoAceito, genero, categoria, subcategoria, ...dataForDB } = formData;
 
+      // Remove máscaras dos campos antes de salvar no banco
+      const cleanedDataForDB = {
+        ...dataForDB,
+        cpf: dataForDB.cpf.replace(/\D/g, ''),
+        telefone: dataForDB.telefone.replace(/\D/g, '')
+      };
+
       // Adiciona campos de categoria como vazios para o banco
       const dataForDBWithEmptyCategories = {
-        ...dataForDB,
+        ...cleanedDataForDB,
         genero: '',
         categoria: '',
         subcategoria: ''
@@ -240,60 +296,67 @@ export const RegistrationForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="rg" className="text-sm font-medium">RG</Label>
+              <Label htmlFor="rg" className="text-sm font-medium">RG *</Label>
               <Input
                 id="rg"
                 value={formData.rg}
                 onChange={(e) => handleInputChange('rg', e.target.value)}
                 className="mt-1"
+                required
               />
             </div>
             <div>
-              <Label htmlFor="idade" className="text-sm font-medium">Idade</Label>
+              <Label htmlFor="idade" className="text-sm font-medium">Idade *</Label>
               <Input
                 id="idade"
                 type="number"
                 value={formData.idade}
                 onChange={(e) => handleInputChange('idade', e.target.value)}
                 className="mt-1"
+                required
               />
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="endereco" className="text-sm font-medium">Endereço</Label>
+              <Label htmlFor="endereco" className="text-sm font-medium">Endereço *</Label>
               <Input
                 id="endereco"
                 value={formData.endereco}
                 onChange={(e) => handleInputChange('endereco', e.target.value)}
                 className="mt-1"
+                required
               />
             </div>
             <div>
-              <Label htmlFor="cidade" className="text-sm font-medium">Cidade</Label>
+              <Label htmlFor="cidade" className="text-sm font-medium">Cidade *</Label>
               <Input
                 id="cidade"
                 value={formData.cidade}
                 onChange={(e) => handleInputChange('cidade', e.target.value)}
                 className="mt-1"
+                required
               />
             </div>
             <div>
-              <Label htmlFor="uf" className="text-sm font-medium">UF</Label>
+              <Label htmlFor="uf" className="text-sm font-medium">UF *</Label>
               <Input
                 id="uf"
                 value={formData.uf}
                 onChange={(e) => handleInputChange('uf', e.target.value)}
                 className="mt-1"
                 maxLength={2}
+                placeholder="PB"
+                required
               />
             </div>
             <div>
-              <Label htmlFor="telefone" className="text-sm font-medium">Telefone</Label>
+              <Label htmlFor="telefone" className="text-sm font-medium">Telefone *</Label>
               <Input
                 id="telefone"
                 value={formData.telefone}
                 onChange={(e) => handleInputChange('telefone', e.target.value)}
                 className="mt-1"
                 placeholder="(00) 00000-0000"
+                required
               />
             </div>
             <div>
