@@ -217,14 +217,41 @@ export const RegistrationForm = () => {
         console.error('Database error details:', error);
 
         if (error.message.includes('relation "public.registrations" does not exist')) {
-          console.warn('Database not configured, generating PDF only');
+          console.warn('Database not configured, generating PDF and sending email');
           try {
+            // Gerar PDF local
             await generatePDF(formData);
-            toast({
-              title: "PDF gerado!",
-              description: "Como o banco não está configurado, apenas o PDF foi gerado. Configure o banco para salvar os dados.",
-              variant: "default"
-            });
+
+            // Tentar enviar email mesmo sem banco
+            try {
+              console.log('Enviando email de confirmação...');
+              const emailResponse = await supabase.functions.invoke('send-email', {
+                body: { registrationData: formData }
+              });
+
+              if (emailResponse.error) {
+                console.error('Erro ao enviar email:', emailResponse.error);
+                toast({
+                  title: "PDF gerado!",
+                  description: "PDF gerado com sucesso, mas houve erro ao enviar email. Configure o banco para salvar os dados.",
+                  variant: "default"
+                });
+              } else {
+                toast({
+                  title: "PDF gerado e email enviado!",
+                  description: "PDF gerado e email enviado com sucesso! Configure o banco para salvar os dados.",
+                  variant: "default"
+                });
+              }
+            } catch (emailError) {
+              console.error('Erro no envio de email:', emailError);
+              toast({
+                title: "PDF gerado!",
+                description: "PDF gerado com sucesso, mas houve erro ao enviar email. Configure o banco para salvar os dados.",
+                variant: "default"
+              });
+            }
+
             return;
           } catch (pdfError) {
             console.error('PDF generation error:', pdfError);
@@ -257,11 +284,38 @@ export const RegistrationForm = () => {
       console.log('Data saved successfully:', data);
 
       try {
+        // Gerar PDF local para download imediato
         await generatePDF(formData);
-        toast({
-          title: "Inscrição realizada!",
-          description: "PDF gerado com sucesso. Verifique os downloads.",
-        });
+
+        // Enviar email com PDF anexado
+        try {
+          console.log('Enviando email de confirmação...');
+          const emailResponse = await supabase.functions.invoke('send-email', {
+            body: { registrationData: formData }
+          });
+
+          if (emailResponse.error) {
+            console.error('Erro ao enviar email:', emailResponse.error);
+            toast({
+              title: "Inscrição realizada!",
+              description: "PDF gerado com sucesso, mas houve erro ao enviar o email de confirmação.",
+              variant: "default"
+            });
+          } else {
+            toast({
+              title: "Inscrição realizada!",
+              description: "PDF gerado e email de confirmação enviado com sucesso!",
+            });
+          }
+        } catch (emailError) {
+          console.error('Erro no envio de email:', emailError);
+          toast({
+            title: "Inscrição realizada!",
+            description: "PDF gerado com sucesso, mas houve erro ao enviar o email de confirmação.",
+            variant: "default"
+          });
+        }
+
       } catch (pdfError) {
         console.error('PDF generation error:', pdfError);
         toast({
