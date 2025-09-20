@@ -142,6 +142,21 @@ export const RegistrationForm = () => {
     try {
       const recaptchaToken = await executeRecaptcha('submit');
       console.log('reCAPTCHA token:', recaptchaToken);
+
+      // Validar token no backend
+      const recaptchaResponse = await supabase.functions.invoke('verify-recaptcha', {
+        body: { token: recaptchaToken }
+      });
+
+      if (recaptchaResponse.error || !recaptchaResponse.data?.success) {
+        toast({
+          title: "Verificação de segurança falhou",
+          description: "Por favor, tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
+
     } catch (error) {
       console.error('reCAPTCHA error:', error);
       toast({
