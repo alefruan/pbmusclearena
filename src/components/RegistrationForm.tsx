@@ -250,9 +250,12 @@ export const RegistrationForm = () => {
                   variant: "default"
                 });
               } else {
+                const isSimulation = emailResponse.data?.simulation;
                 toast({
                   title: "PDF gerado e email enviado!",
-                  description: "PDF gerado e email enviado com sucesso! Configure o banco para salvar os dados.",
+                  description: isSimulation
+                    ? "PDF gerado e email simulado com sucesso! Configure Resend e o banco para funcionalidade completa."
+                    : "PDF gerado e email enviado com sucesso! Configure o banco para salvar os dados.",
                   variant: "default"
                 });
               }
@@ -315,9 +318,12 @@ export const RegistrationForm = () => {
               variant: "default"
             });
           } else {
+            const isSimulation = emailResponse.data?.simulation;
             toast({
               title: "Inscrição realizada!",
-              description: "PDF gerado e email de confirmação enviado com sucesso!",
+              description: isSimulation
+                ? "PDF gerado e email simulado com sucesso! (Configure Resend para envio real)"
+                : "PDF gerado e email de confirmação enviado com sucesso!",
             });
           }
         } catch (emailError) {

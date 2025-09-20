@@ -9,7 +9,8 @@
       "Read(//c/Users/Alef/Pictures/Screenshots/**)",
       "Bash(npm run build:*)",
       "Bash(npx supabase functions logs:*)",
-      "Bash(npx supabase secrets set:*)"
+      "Bash(npx supabase secrets set:*)",
+      "Bash(npx supabase secrets:*)"
     ],
     "deny": [],
     "ask": []
