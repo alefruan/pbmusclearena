@@ -60,17 +60,15 @@ function createEmailTemplate(data: RegistrationData): string {
                     <p><strong>CPF:</strong> ${data.cpf}</p>
                     <p><strong>Email:</strong> ${data.email}</p>
                     <p><strong>Telefone:</strong> ${data.telefone}</p>
-                    <p><strong>Categoria:</strong> ${data.categoria}</p>
-                    <p><strong>Subcategoria:</strong> ${data.subcategoria}</p>
                 </div>
 
                 <p>Em anexo você encontrará o PDF com sua ficha de inscrição oficial. Guarde este documento, pois será necessário apresentá-lo no dia do evento.</p>
 
                 <p><strong>Próximos Passos:</strong></p>
                 <ul>
-                    <li>Aguarde confirmação do pagamento (se aplicável)</li>
                     <li>Apresente-se no local do evento com o documento em anexo</li>
                     <li>Siga as orientações do regulamento do evento</li>
+                    <li>Chegue com antecedência para a pesagem e verificações</li>
                 </ul>
 
                 <p>Em caso de dúvidas, entre em contato conosco através do email inscricao@pbmusclearena.com</p>
