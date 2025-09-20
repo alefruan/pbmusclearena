@@ -32,20 +32,10 @@ serve(async (req) => {
 
     if (!secretKey) {
       console.log('RECAPTCHA_SECRET_KEY not configured');
-
-      // Por enquanto, vamos retornar sucesso se não houver chave configurada
-      // Para permitir que o formulário funcione durante desenvolvimento
-      console.log('Bypassing reCAPTCHA verification - no secret key configured');
       return new Response(
-        JSON.stringify({
-          success: true,
-          score: 0.9,
-          action: 'submit',
-          bypass: true,
-          message: 'reCAPTCHA verification bypassed - configure RECAPTCHA_SECRET_KEY for production'
-        }),
+        JSON.stringify({ error: 'Chave secreta do reCAPTCHA não configurada' }),
         {
-          status: 200,
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )

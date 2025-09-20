@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/utils/pdfGenerator';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 interface RegistrationData {
   id?: number;
@@ -65,7 +65,7 @@ const SUBCATEGORIAS = [
 
 export const RegistrationForm = () => {
   const { toast } = useToast();
-  const { executeRecaptcha } = useGoogleReCaptcha();
+  const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
   const [formData, setFormData] = useState<RegistrationData>({
     nome: '',
     cpf: '',
@@ -129,8 +129,8 @@ export const RegistrationForm = () => {
       return;
     }
 
-    // Verificação do reCAPTCHA
-    if (!executeRecaptcha) {
+    // Verificação do reCAPTCHA v2
+    if (!recaptchaRef) {
       toast({
         title: "Erro de segurança",
         description: "reCAPTCHA não está disponível. Tente recarregar a página.",
@@ -139,8 +139,17 @@ export const RegistrationForm = () => {
       return;
     }
 
+    const recaptchaToken = recaptchaRef.getValue();
+    if (!recaptchaToken) {
+      toast({
+        title: "Verificação de segurança",
+        description: "Por favor, complete o reCAPTCHA.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      const recaptchaToken = await executeRecaptcha('submit');
       console.log('reCAPTCHA token:', recaptchaToken);
 
       // Validar token no backend
@@ -154,6 +163,8 @@ export const RegistrationForm = () => {
           description: "Por favor, tente novamente.",
           variant: "destructive"
         });
+        // Reset do reCAPTCHA
+        recaptchaRef.reset();
         return;
       }
 
@@ -164,6 +175,8 @@ export const RegistrationForm = () => {
         description: "Falha na verificação de segurança. Tente novamente.",
         variant: "destructive"
       });
+      // Reset do reCAPTCHA
+      recaptchaRef.reset();
       return;
     }
 
@@ -465,6 +478,19 @@ export const RegistrationForm = () => {
                 É obrigatório aceitar o regulamento para realizar a inscrição
               </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* reCAPTCHA v2 */}
+      <Card className="shadow-card">
+        <CardContent className="p-6">
+          <div className="flex justify-center">
+            <ReCAPTCHA
+              ref={(ref) => setRecaptchaRef(ref)}
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+              theme="light"
+            />
           </div>
         </CardContent>
       </Card>
