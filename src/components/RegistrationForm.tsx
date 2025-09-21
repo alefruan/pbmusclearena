@@ -5,11 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/utils/pdfGenerator';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { SuccessModal } from '@/components/SuccessModal';
 
 interface RegistrationData {
   id?: number;
@@ -63,9 +65,16 @@ const SUBCATEGORIAS = [
   'CLASSE ESPECIAL'
 ];
 
+const UFS_BRASIL = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+];
+
 export const RegistrationForm = () => {
   const { toast } = useToast();
   const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState<RegistrationData>({
     nome: '',
     cpf: '',
@@ -73,7 +82,7 @@ export const RegistrationForm = () => {
     idade: '',
     endereco: '',
     cidade: '',
-    uf: '',
+    uf: 'PB',
     telefone: '',
     email: '',
     altura: '0',
@@ -250,14 +259,7 @@ export const RegistrationForm = () => {
                   variant: "default"
                 });
               } else {
-                const isSimulation = emailResponse.data?.simulation;
-                toast({
-                  title: "PDF gerado e email enviado!",
-                  description: isSimulation
-                    ? "PDF gerado e email simulado com sucesso! Configure Resend e o banco para funcionalidade completa."
-                    : "PDF gerado e email enviado com sucesso! Configure o banco para salvar os dados.",
-                  variant: "default"
-                });
+                setShowSuccessModal(true);
               }
             } catch (emailError) {
               console.error('Erro no envio de email:', emailError);
@@ -318,13 +320,7 @@ export const RegistrationForm = () => {
               variant: "default"
             });
           } else {
-            const isSimulation = emailResponse.data?.simulation;
-            toast({
-              title: "Inscrição realizada!",
-              description: isSimulation
-                ? "PDF gerado e email simulado com sucesso! (Configure Resend para envio real)"
-                : "PDF gerado e email de confirmação enviado com sucesso!",
-            });
+            setShowSuccessModal(true);
           }
         } catch (emailError) {
           console.error('Erro no envio de email:', emailError);
@@ -426,15 +422,18 @@ export const RegistrationForm = () => {
             </div>
             <div>
               <Label htmlFor="uf" className="text-sm font-medium">UF *</Label>
-              <Input
-                id="uf"
-                value={formData.uf}
-                onChange={(e) => handleInputChange('uf', e.target.value)}
-                className="mt-1"
-                maxLength={2}
-                placeholder="PB"
-                required
-              />
+              <Select value={formData.uf} onValueChange={(value) => handleInputChange('uf', value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecione a UF" />
+                </SelectTrigger>
+                <SelectContent>
+                  {UFS_BRASIL.map((uf) => (
+                    <SelectItem key={uf} value={uf}>
+                      {uf}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="telefone" className="text-sm font-medium">Telefone *</Label>
@@ -510,6 +509,12 @@ export const RegistrationForm = () => {
           Gerar Inscrição PDF
         </Button>
       </div>
+
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        athleteName={formData.nome}
+      />
     </form>
   );
 };
