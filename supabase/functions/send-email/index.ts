@@ -140,7 +140,7 @@ serve(async (req) => {
 
     // Preparar dados para envio via Resend
     const emailData = {
-      from: 'PB Muscle Arena <onboarding@resend.dev>',
+      from: 'PB Muscle Arena <inscricao@pbmusclearena.com>',
       to: [registrationData.email, 'inscricao@pbmusclearena.com'],
       subject: `Confirmação de Inscrição - ${registrationData.nome}`,
       html: emailHtml,
