@@ -125,8 +125,17 @@ const Index = () => {
                 <h2 className="text-3xl font-bold text-foreground mb-4">
                   Inscreva-se no Evento de Fisiculturismo
                 </h2>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-lg text-muted-foreground mb-4">
                   Preencha o formulário abaixo e gere automaticamente seu PDF de inscrição para impressão.
+                </p>
+                <p className="text-base text-muted-foreground">
+                  Verifique se você já está inscrito{' '}
+                  <Link
+                    to="/verificar"
+                    className="text-orange-600 hover:text-orange-700 font-medium underline"
+                  >
+                    clique aqui
+                  </Link>
                 </p>
               </div>
 
