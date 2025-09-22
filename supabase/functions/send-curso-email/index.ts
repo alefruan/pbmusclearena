@@ -1,14 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-// Interface para os dados de ingresso
-interface IngressoData {
+// Interface para os dados de curso
+interface CursoData {
   nome: string;
   cpf: string;
   telefone: string;
   email: string;
   cidade: string;
   uf: string;
-  ingressoId?: number;
+  curso: string;
+  cursoId?: number;
 }
 
 const corsHeaders = {
@@ -16,9 +17,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Template de email HTML para ingresso
-function createIngressoEmailTemplate(data: IngressoData): string {
-  const ingressoNumero = data.ingressoId ? String(data.ingressoId).padStart(6, '0') : '000000';
+// Template de email HTML para curso
+function createCursoEmailTemplate(data: CursoData): string {
+  const cursoNumero = data.cursoId ? String(data.cursoId).padStart(6, '0') : '000000';
 
   return `
     <!DOCTYPE html>
@@ -31,7 +32,8 @@ function createIngressoEmailTemplate(data: IngressoData): string {
             .header { text-align: center; color: #dc5e28; border-bottom: 3px solid #dc5e28; padding-bottom: 20px; margin-bottom: 20px; }
             .content { line-height: 1.6; }
             .info-section { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
-            .ticket-number { background: #dc5e28; color: white; text-align: center; padding: 15px; border-radius: 5px; margin: 20px 0; font-size: 24px; font-weight: bold; }
+            .course-number { background: #dc5e28; color: white; text-align: center; padding: 15px; border-radius: 5px; margin: 20px 0; font-size: 24px; font-weight: bold; }
+            .course-info { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #4caf50; }
             .event-details { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #2196f3; }
             .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
             .highlight { color: #dc5e28; font-weight: bold; }
@@ -41,20 +43,27 @@ function createIngressoEmailTemplate(data: IngressoData): string {
         <div class="container">
             <div class="header">
                 <h1>🏆 PB MUSCLE ARENA 🏆</h1>
-                <h2>Ingresso Confirmado com Sucesso!</h2>
+                <h2>Inscrição no Curso Confirmada!</h2>
             </div>
 
             <div class="content">
                 <p>Olá <strong>${data.nome}</strong>,</p>
 
-                <p>Seu ingresso para o evento <strong>PB MUSCLE ARENA</strong> foi registrado com sucesso!</p>
+                <p>Sua inscrição no curso do evento <strong>PB MUSCLE ARENA</strong> foi registrada com sucesso!</p>
 
-                <div class="ticket-number">
-                    🎫 INGRESSO Nº #${ingressoNumero}
+                <div class="course-number">
+                    📚 INSCRIÇÃO Nº #${cursoNumero}
+                </div>
+
+                <div class="course-info">
+                    <h3>🎓 Curso Selecionado</h3>
+                    <p style="font-size: 18px; font-weight: bold; color: #2e7d32; margin: 0;">
+                        ${data.curso}
+                    </p>
                 </div>
 
                 <div class="info-section">
-                    <h3>📋 Dados do Ingresso:</h3>
+                    <h3>📋 Dados da Inscrição:</h3>
                     <p><strong>Nome:</strong> ${data.nome}</p>
                     <p><strong>CPF:</strong> ${data.cpf}</p>
                     <p><strong>Email:</strong> ${data.email}</p>
@@ -72,23 +81,25 @@ function createIngressoEmailTemplate(data: IngressoData): string {
                 <div class="info-section">
                     <h3>⚠️ Informações Importantes</h3>
                     <ul>
-                        <li><strong>Guarde este número do ingresso:</strong> #${ingressoNumero}</li>
-                        <li>Apresente um documento com foto na entrada</li>
-                        <li>Chegue com antecedência para evitar filas</li>
-                        <li>O evento começará pontualmente no horário programado</li>
+                        <li><strong>Guarde este número da inscrição:</strong> #${cursoNumero}</li>
+                        <li>Apresente um documento com foto no momento do curso</li>
+                        <li>Chegue com antecedência para fazer seu credenciamento</li>
+                        <li>Os cursos começarão pontualmente no horário programado</li>
+                        <li>Material didático será disponibilizado durante o curso</li>
+                        <li>Certificado será emitido ao final do curso</li>
                     </ul>
                 </div>
 
-                <p><strong>🎉 Te esperamos lá para presenciar os melhores atletas em ação!</strong></p>
+                <p><strong>🎉 Te esperamos lá para uma experiência de aprendizado incrível!</strong></p>
 
-                <p>Em caso de dúvidas, entre em contato conosco através do email <strong>ingresso@pbmusclearena.com</strong></p>
+                <p>Em caso de dúvidas, entre em contato conosco através do email <strong>cursos@pbmusclearena.com</strong></p>
 
-                <p style="color: #dc5e28; font-weight: bold;">Nos vemos no PB MUSCLE ARENA! 💪</p>
+                <p style="color: #dc5e28; font-weight: bold;">Nos vemos no PB MUSCLE ARENA! 📚💪</p>
             </div>
 
             <div class="footer">
                 <p><strong>PB MUSCLE ARENA</strong><br>
-                Email: ingresso@pbmusclearena.com<br>
+                Email: cursos@pbmusclearena.com<br>
                 Website: pbmusclearena.com</p>
             </div>
         </div>
@@ -104,11 +115,11 @@ serve(async (req) => {
   }
 
   try {
-    const { ingressoData } = await req.json()
+    const { cursoData } = await req.json()
 
-    if (!ingressoData) {
+    if (!cursoData) {
       return new Response(
-        JSON.stringify({ error: 'Dados do ingresso são obrigatórios' }),
+        JSON.stringify({ error: 'Dados do curso são obrigatórios' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -122,18 +133,18 @@ serve(async (req) => {
       console.log('RESEND_API_KEY not configured - simulating email send');
 
       // Simular envio de email para desenvolvimento
-      const emailHtml = createIngressoEmailTemplate(ingressoData)
+      const emailHtml = createCursoEmailTemplate(cursoData)
 
-      console.log('Simulated ingresso email sent to:', ingressoData.email);
-      console.log('CC: ingresso@pbmusclearena.com');
+      console.log('Simulated curso email sent to:', cursoData.email);
+      console.log('CC: cursos@pbmusclearena.com');
       console.log('Email template created successfully');
 
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Email de ingresso simulado com sucesso (configure RESEND_API_KEY para envio real)',
+          message: 'Email de curso simulado com sucesso (configure RESEND_API_KEY para envio real)',
           simulation: true,
-          recipients: [ingressoData.email, 'ingresso@pbmusclearena.com']
+          recipients: [cursoData.email, 'cursos@pbmusclearena.com']
         }),
         {
           status: 200,
@@ -143,14 +154,14 @@ serve(async (req) => {
     }
 
     // Criar template do email
-    const emailHtml = createIngressoEmailTemplate(ingressoData)
+    const emailHtml = createCursoEmailTemplate(cursoData)
 
     // Preparar dados para envio via Resend
     const emailData = {
-      from: 'PB Muscle Arena <ingresso@pbmusclearena.com>',
-      to: [ingressoData.email],
-      cc: ['ingresso@pbmusclearena.com'],
-      subject: `🎫 Ingresso Confirmado - PB MUSCLE ARENA - ${ingressoData.nome}`,
+      from: 'PB Muscle Arena <cursos@pbmusclearena.com>',
+      to: [cursoData.email],
+      cc: ['cursos@pbmusclearena.com'],
+      subject: `🎓 Inscrição no Curso Confirmada - PB MUSCLE ARENA - ${cursoData.nome}`,
       html: emailHtml,
     }
 
@@ -170,7 +181,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Email de ingresso enviado com sucesso',
+          message: 'Email de curso enviado com sucesso',
           emailId: result.id
         }),
         {
@@ -179,11 +190,11 @@ serve(async (req) => {
         }
       )
     } else {
-      console.error('Erro ao enviar email de ingresso:', result)
+      console.error('Erro ao enviar email de curso:', result)
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Falha ao enviar email de ingresso',
+          error: 'Falha ao enviar email de curso',
           details: result
         }),
         {

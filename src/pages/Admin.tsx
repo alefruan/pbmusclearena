@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, X, FileText, Ticket } from 'lucide-react';
+import { Pencil, X, FileText, Ticket, GraduationCap } from 'lucide-react';
 
 interface RegistrationData {
   id?: number;
@@ -59,6 +59,17 @@ interface IngressoData {
   uf: string;
 }
 
+interface CursoData {
+  id?: number;
+  nome: string;
+  cpf: string;
+  telefone: string;
+  email: string;
+  cidade: string;
+  uf: string;
+  curso: string;
+}
+
 const Admin: React.FC = () => {
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
   const [editingRegistration, setEditingRegistration] = useState<RegistrationData | null>(null);
@@ -80,6 +91,15 @@ const Admin: React.FC = () => {
   const [isIngressoAlertOpen, setIsIngressoAlertOpen] = useState(false);
   const [ingressoSearchTerm, setIngressoSearchTerm] = useState('');
   const [showIngressos, setShowIngressos] = useState(false);
+
+  // Estados para cursos
+  const [cursos, setCursos] = useState<CursoData[]>([]);
+  const [editingCurso, setEditingCurso] = useState<CursoData | null>(null);
+  const [deletingCurso, setDeletingCurso] = useState<CursoData | null>(null);
+  const [isCursoModalOpen, setIsCursoModalOpen] = useState(false);
+  const [isCursoAlertOpen, setIsCursoAlertOpen] = useState(false);
+  const [cursoSearchTerm, setCursoSearchTerm] = useState('');
+  const [showCursos, setShowCursos] = useState(false);
 
   const navigate = useNavigate();
 
@@ -122,17 +142,33 @@ const Admin: React.FC = () => {
     }
   };
 
+  const fetchCursos = async () => {
+    try {
+      const { data, error } = await supabase.from('cursos').select('*');
+      if (error) {
+        console.error('Error fetching cursos:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.cursos" does not exist')) {
+          alert('Tabela de cursos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        }
+      } else {
+        setCursos(data as CursoData[]);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('Erro inesperado ao buscar cursos. Verifique a conexão com o banco.');
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       await fetchRegistrations();
       await fetchRegulamento();
       await fetchInscricoesStatus();
-      if (showIngressos) {
-        await fetchIngressos();
-      }
+      await fetchIngressos(); // Sempre carregar ingressos para mostrar o contador
+      await fetchCursos(); // Sempre carregar cursos para mostrar o contador
     };
     loadData();
-  }, [showIngressos]);
+  }, []);
 
   const fetchRegulamento = async () => {
     try {
@@ -357,10 +393,61 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       registration.cpf.includes(searchTerm)
   );
 
+  // Funções para cursos
+  const handleCursoEditClick = (curso: CursoData) => {
+    setEditingCurso(curso);
+    setIsCursoModalOpen(true);
+  };
+
+  const handleCursoUpdate = async () => {
+    if (!editingCurso) return;
+
+    const { error } = await supabase
+      .from('cursos')
+      .update(editingCurso)
+      .eq('id', editingCurso.id);
+
+    if (error) {
+      console.error('Error updating curso:', error);
+    } else {
+      setIsCursoModalOpen(false);
+      setEditingCurso(null);
+      fetchCursos();
+    }
+  };
+
+  const handleCursoDeleteClick = (curso: CursoData) => {
+    setDeletingCurso(curso);
+    setIsCursoAlertOpen(true);
+  };
+
+  const handleCursoDeleteConfirm = async () => {
+    if (!deletingCurso) return;
+
+    const { error } = await supabase
+      .from('cursos')
+      .delete()
+      .eq('id', deletingCurso.id);
+
+    if (error) {
+      console.error('Error deleting curso:', error);
+    } else {
+      setIsCursoAlertOpen(false);
+      setDeletingCurso(null);
+      fetchCursos();
+    }
+  };
+
   const filteredIngressos = ingressos.filter(
     (ingresso) =>
       ingresso.nome.toLowerCase().includes(ingressoSearchTerm.toLowerCase()) ||
       ingresso.cpf.includes(ingressoSearchTerm)
+  );
+
+  const filteredCursos = cursos.filter(
+    (curso) =>
+      curso.nome.toLowerCase().includes(cursoSearchTerm.toLowerCase()) ||
+      curso.cpf.includes(cursoSearchTerm)
   );
 
   return (
@@ -374,8 +461,23 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
         <h1 className="text-2xl font-bold">Painel Administrativo</h1>
         <div className="flex gap-2">
           <Button
-            onClick={() => setShowIngressos(!showIngressos)}
+            onClick={() => {
+              setShowIngressos(false);
+              setShowCursos(!showCursos);
+            }}
             variant="outline"
+            className={showCursos ? 'bg-green-100 text-green-800 border-green-300' : ''}
+          >
+            <GraduationCap className="h-4 w-4 mr-2" />
+            {showCursos ? 'Ver Inscrições' : 'Ver Cursos'}
+          </Button>
+          <Button
+            onClick={() => {
+              setShowCursos(false);
+              setShowIngressos(!showIngressos);
+            }}
+            variant="outline"
+            className={showIngressos ? 'bg-blue-100 text-blue-800 border-blue-300' : ''}
           >
             <Ticket className="h-4 w-4 mr-2" />
             {showIngressos ? 'Ver Inscrições' : 'Ver Ingressos'}
@@ -409,21 +511,51 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       </div>
       <div className="mb-4 flex items-center gap-4">
         <Input
-          placeholder={showIngressos ? "Buscar ingresso por nome ou CPF..." : "Buscar inscrição por nome ou CPF..."}
-          value={showIngressos ? ingressoSearchTerm : searchTerm}
-          onChange={(e) => showIngressos ? setIngressoSearchTerm(e.target.value) : setSearchTerm(e.target.value)}
+          placeholder={
+            showCursos ? "Buscar curso por nome ou CPF..." :
+            showIngressos ? "Buscar ingresso por nome ou CPF..." :
+            "Buscar inscrição por nome ou CPF..."
+          }
+          value={
+            showCursos ? cursoSearchTerm :
+            showIngressos ? ingressoSearchTerm :
+            searchTerm
+          }
+          onChange={(e) => {
+            if (showCursos) {
+              setCursoSearchTerm(e.target.value);
+            } else if (showIngressos) {
+              setIngressoSearchTerm(e.target.value);
+            } else {
+              setSearchTerm(e.target.value);
+            }
+          }}
           className="max-w-sm"
         />
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium">Total de inscrições:</span>
-          <span className="bg-gray-100 text-black px-2 py-1 rounded-md font-semibold">
-            {registrations.length}
-          </span>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Total de inscrições:</span>
+            <span className="bg-gray-100 text-black px-2 py-1 rounded-md font-semibold">
+              {registrations.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Total de ingressos:</span>
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold">
+              {ingressos.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Total de cursos:</span>
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md font-semibold">
+              {cursos.length}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Seção de Inscrições */}
-      {!showIngressos && (
+      {!showIngressos && !showCursos && (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white">
             <thead>
@@ -487,6 +619,51 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button onClick={() => handleIngressoDeleteClick(ingresso)} variant="destructive">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Seção de Cursos */}
+      {showCursos && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b">ID</th>
+                <th className="py-2 px-4 border-b">Nome</th>
+                <th className="py-2 px-4 border-b">CPF</th>
+                <th className="py-2 px-4 border-b">Telefone</th>
+                <th className="py-2 px-4 border-b">Email</th>
+                <th className="py-2 px-4 border-b">Cidade/UF</th>
+                <th className="py-2 px-4 border-b">Curso</th>
+                <th className="py-2 px-4 border-b">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCursos.map((curso) => (
+                <tr key={curso.id}>
+                  <td className="py-2 px-4 border-b">#{String(curso.id).padStart(6, '0')}</td>
+                  <td className="py-2 px-4 border-b">{curso.nome}</td>
+                  <td className="py-2 px-4 border-b">{curso.cpf}</td>
+                  <td className="py-2 px-4 border-b">{curso.telefone}</td>
+                  <td className="py-2 px-4 border-b">{curso.email}</td>
+                  <td className="py-2 px-4 border-b">{curso.cidade}/{curso.uf}</td>
+                  <td className="py-2 px-4 border-b">
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs font-medium">
+                      {curso.curso}
+                    </span>
+                  </td>
+                  <td className="py-2 px-4 border-b">
+                    <Button onClick={() => handleCursoEditClick(curso)} className="mr-2">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={() => handleCursoDeleteClick(curso)} variant="destructive">
                       <X className="h-4 w-4" />
                     </Button>
                   </td>
@@ -618,6 +795,57 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={handleIngressoDeleteConfirm}>Deletar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Modais para Cursos */}
+      {editingCurso && (
+        <Dialog open={isCursoModalOpen} onOpenChange={setIsCursoModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Curso</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {Object.keys(editingCurso).map((key) => (
+                <div key={key} className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor={key} className="text-right">
+                    {key}
+                  </label>
+                  <input
+                    id={key}
+                    value={editingCurso[key as keyof CursoData]?.toString() || ''}
+                    onChange={(e) =>
+                      setEditingCurso({
+                        ...editingCurso,
+                        [key]: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+              ))}
+            </div>
+            <Button onClick={handleCursoUpdate}>Salvar</Button>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {deletingCurso && (
+        <AlertDialog open={isCursoAlertOpen} onOpenChange={setIsCursoAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Essa ação não pode ser desfeita. Isso irá deletar permanentemente a inscrição no curso de {
+                  deletingCurso.nome
+                }.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCursoDeleteConfirm}>Deletar</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -10,6 +10,8 @@ import Regulamento from "./pages/Regulamento";
 import { VerifyRegistration } from "./pages/VerifyRegistration";
 import Ingressos from "./pages/Ingressos";
 import IngressoSucesso from "./pages/IngressoSucesso";
+import Cursos from "./pages/Cursos";
+import CursoSucesso from "./pages/CursoSucesso";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +35,8 @@ const App = () => (
           <Route path="/verificar" element={<VerifyRegistration />} />
           <Route path="/ingressos" element={<Ingressos />} />
           <Route path="/ingresso-sucesso" element={<IngressoSucesso />} />
+          <Route path="/cursos" element={<Cursos />} />
+          <Route path="/curso-sucesso" element={<CursoSucesso />} />
           <Route
             path="/admin"
             element={
