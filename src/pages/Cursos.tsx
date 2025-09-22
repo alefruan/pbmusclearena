@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -17,7 +17,7 @@ interface CursoData {
   email: string;
   cidade: string;
   uf: string;
-  curso: string;
+  cursos: string[];
 }
 
 const UFS_BRASIL = [
@@ -46,7 +46,7 @@ const Cursos: React.FC = () => {
     email: '',
     cidade: '',
     uf: 'PB',
-    curso: 'Nutrição Esportiva'
+    cursos: []
   });
 
   useEffect(() => {
@@ -101,6 +101,15 @@ const Cursos: React.FC = () => {
     }));
   };
 
+  const handleCursoToggle = (curso: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      cursos: checked
+        ? [...prev.cursos, curso]
+        : prev.cursos.filter(c => c !== curso)
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -116,10 +125,10 @@ const Cursos: React.FC = () => {
     }
 
     // Validação básica
-    if (!formData.nome || !formData.cpf || !formData.telefone || !formData.email || !formData.cidade || !formData.uf || !formData.curso) {
+    if (!formData.nome || !formData.cpf || !formData.telefone || !formData.email || !formData.cidade || !formData.uf || formData.cursos.length === 0) {
       toast({
         title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios.",
+        description: "Por favor, preencha todos os campos obrigatórios e selecione pelo menos um curso.",
         variant: "destructive"
       });
       setIsLoading(false);
@@ -225,11 +234,12 @@ const Cursos: React.FC = () => {
     }
 
     try {
-      // Remove máscaras dos campos antes de salvar
+      // Remove máscaras dos campos antes de salvar e converte array de cursos em string
       const cleanedData = {
         ...formData,
         cpf: formData.cpf.replace(/\D/g, ''),
-        telefone: formData.telefone.replace(/\D/g, '')
+        telefone: formData.telefone.replace(/\D/g, ''),
+        cursos: formData.cursos.join(', ') // Converte array em string separada por vírgulas
       };
 
       const { data, error } = await supabase
@@ -295,7 +305,7 @@ const Cursos: React.FC = () => {
         state: {
           nomeCompleto: formData.nome,
           cursoId: data[0].id,
-          curso: formData.curso
+          cursos: formData.cursos
         }
       });
 
@@ -438,25 +448,40 @@ const Cursos: React.FC = () => {
 
         <Card className="shadow-card">
           <CardHeader className="bg-green-400 text-black rounded-t-lg">
-            <CardTitle className="text-xl font-bold">SELEÇÃO DE CURSO</CardTitle>
+            <CardTitle className="text-xl font-bold">SELEÇÃO DE CURSOS</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div>
-              <Label className="text-sm font-medium mb-4 block">Escolha o curso de interesse *</Label>
-              <RadioGroup
-                value={formData.curso}
-                onValueChange={(value) => handleInputChange('curso', value)}
-                className="grid grid-cols-1 gap-4"
-              >
+              <Label className="text-sm font-medium mb-4 block">Escolha os cursos de interesse * (pode selecionar mais de um)</Label>
+              <div className="grid grid-cols-1 gap-4">
                 {CURSOS_OPCOES.map((curso) => (
                   <div key={curso} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                    <RadioGroupItem value={curso} id={curso} />
-                    <Label htmlFor={curso} className="cursor-pointer font-medium">
+                    <Checkbox
+                      id={curso}
+                      checked={formData.cursos.includes(curso)}
+                      onCheckedChange={(checked) => handleCursoToggle(curso, checked === true)}
+                    />
+                    <Label htmlFor={curso} className="cursor-pointer font-medium flex-1">
                       {curso}
                     </Label>
                   </div>
                 ))}
-              </RadioGroup>
+              </div>
+              {formData.cursos.length > 0 && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm font-medium text-green-800 mb-2">Cursos selecionados:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.cursos.map((curso) => (
+                      <span
+                        key={curso}
+                        className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium"
+                      >
+                        {curso}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

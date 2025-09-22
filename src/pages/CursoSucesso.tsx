@@ -7,7 +7,7 @@ import { CheckCircle, GraduationCap, ArrowLeft } from 'lucide-react';
 interface CursoSucessoState {
   nomeCompleto: string;
   cursoId: number;
-  curso: string;
+  cursos: string[];
 }
 
 const CursoSucesso: React.FC = () => {
@@ -21,7 +21,7 @@ const CursoSucesso: React.FC = () => {
     return null;
   }
 
-  const { nomeCompleto, cursoId, curso } = state;
+  const { nomeCompleto, cursoId, cursos } = state;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -58,8 +58,19 @@ const CursoSucesso: React.FC = () => {
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border-2 border-dashed border-blue-400">
-              <p className="text-sm font-medium text-blue-700 mb-2">Curso Selecionado:</p>
-              <p className="text-lg font-bold text-blue-800">{curso}</p>
+              <p className="text-sm font-medium text-blue-700 mb-2">
+                {cursos.length === 1 ? 'Curso Selecionado:' : 'Cursos Selecionados:'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {cursos.map((curso, index) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                  >
+                    {curso}
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2 text-sm text-muted-foreground">

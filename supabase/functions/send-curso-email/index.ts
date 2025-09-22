@@ -8,7 +8,7 @@ interface CursoData {
   email: string;
   cidade: string;
   uf: string;
-  curso: string;
+  cursos: string[];
   cursoId?: number;
 }
 
@@ -56,10 +56,12 @@ function createCursoEmailTemplate(data: CursoData): string {
                 </div>
 
                 <div class="course-info">
-                    <h3>🎓 Curso Selecionado</h3>
-                    <p style="font-size: 18px; font-weight: bold; color: #2e7d32; margin: 0;">
-                        ${data.curso}
-                    </p>
+                    <h3>🎓 ${data.cursos.length === 1 ? 'Curso Selecionado' : 'Cursos Selecionados'}</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                        ${data.cursos.map(curso =>
+                            `<span style="background-color: #e8f5e8; color: #2e7d32; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;">${curso}</span>`
+                        ).join('')}
+                    </div>
                 </div>
 
                 <div class="info-section">
@@ -84,9 +86,6 @@ function createCursoEmailTemplate(data: CursoData): string {
                         <li><strong>Guarde este número da inscrição:</strong> #${cursoNumero}</li>
                         <li>Apresente um documento com foto no momento do curso</li>
                         <li>Chegue com antecedência para fazer seu credenciamento</li>
-                        <li>Os cursos começarão pontualmente no horário programado</li>
-                        <li>Material didático será disponibilizado durante o curso</li>
-                        <li>Certificado será emitido ao final do curso</li>
                     </ul>
                 </div>
 

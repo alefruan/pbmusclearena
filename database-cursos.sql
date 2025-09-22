@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.cursos (
   email TEXT NOT NULL,
   cidade TEXT NOT NULL,
   uf TEXT NOT NULL,
-  curso TEXT NOT NULL,
+  cursos TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL
 );
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.cursos (
 CREATE INDEX IF NOT EXISTS idx_cursos_cpf ON public.cursos(cpf);
 CREATE INDEX IF NOT EXISTS idx_cursos_email ON public.cursos(email);
 CREATE INDEX IF NOT EXISTS idx_cursos_nome ON public.cursos(nome);
-CREATE INDEX IF NOT EXISTS idx_cursos_curso ON public.cursos(curso);
+CREATE INDEX IF NOT EXISTS idx_cursos_cursos ON public.cursos(cursos);
 
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE public.cursos ENABLE ROW LEVEL SECURITY;
@@ -48,4 +48,4 @@ CREATE TRIGGER update_cursos_updated_at BEFORE UPDATE ON public.cursos
 
 -- Comentários para documentação
 COMMENT ON TABLE public.cursos IS 'Tabela para armazenar inscrições em cursos do evento PB MUSCLE ARENA';
-COMMENT ON COLUMN public.cursos.curso IS 'Tipo de curso: Nutrição Esportiva, Treinamento Físico, Capacitação para árbitros, ou Todos os cursos';
+COMMENT ON COLUMN public.cursos.cursos IS 'Tipos de cursos selecionados (separados por vírgula): Nutrição Esportiva, Treinamento Físico, Capacitação para árbitros, ou Todos os cursos';
