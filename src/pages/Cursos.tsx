@@ -451,7 +451,7 @@ const Cursos: React.FC = () => {
 
         <Card className="shadow-card">
           <CardHeader className="bg-green-400 text-black rounded-t-lg">
-            <CardTitle className="text-xl font-bold">SELEÇÃO DE CURSOS</CardTitle>
+            <CardTitle className="text-xl font-bold">SELEÇÃO DE CURSOS:</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div>
