@@ -306,13 +306,19 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           </div>
         </div>
       </div>
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-4">
         <Input
           placeholder="Buscar por nome ou CPF..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="font-medium">Total de inscrições:</span>
+          <span className="bg-gray-100 text-black px-2 py-1 rounded-md font-semibold">
+            {registrations.length}
+          </span>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white">
