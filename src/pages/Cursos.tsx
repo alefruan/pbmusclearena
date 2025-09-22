@@ -242,7 +242,7 @@ const Cursos: React.FC = () => {
         email: formData.email,
         cidade: formData.cidade,
         uf: formData.uf,
-        tipos_cursos: formData.cursos.join(', ') // Converte array em string separada por vírgulas
+        curso: formData.cursos.join(', ') // Converte array em string separada por vírgulas
       };
 
       const { data, error } = await supabase

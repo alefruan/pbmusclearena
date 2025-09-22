@@ -67,7 +67,7 @@ interface CursoData {
   email: string;
   cidade: string;
   uf: string;
-  tipos_cursos: string;
+  curso: string;
 }
 
 const Admin: React.FC = () => {
@@ -789,15 +789,15 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
                   <td className="py-2 px-4 border-b">{curso.cidade}/{curso.uf}</td>
                   <td className="py-2 px-4 border-b">
                     <div className="flex flex-wrap gap-1">
-                      {typeof curso.tipos_cursos === 'string' && curso.tipos_cursos.includes(',')
-                        ? curso.tipos_cursos.split(',').map((c, index) => (
+                      {typeof curso.curso === 'string' && curso.curso.includes(',')
+                        ? curso.curso.split(',').map((c, index) => (
                             <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs font-medium">
                               {c.trim()}
                             </span>
                           ))
                         : (
                             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs font-medium">
-                              {curso.tipos_cursos}
+                              {curso.curso}
                             </span>
                           )
                       }
