@@ -75,6 +75,7 @@ export const RegistrationForm = () => {
   const { toast } = useToast();
   const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<RegistrationData>({
     nome: '',
     cpf: '',
@@ -127,6 +128,7 @@ export const RegistrationForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     // Validação básica
     if (!formData.nome || !formData.cpf || !formData.rg || !formData.idade || !formData.endereco || !formData.cidade || !formData.uf || !formData.telefone || !formData.email || !formData.regulamentoAceito) {
@@ -135,6 +137,7 @@ export const RegistrationForm = () => {
         description: "Por favor, preencha todos os campos obrigatórios da identificação e aceite o regulamento do evento.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
 
@@ -145,6 +148,7 @@ export const RegistrationForm = () => {
         description: "reCAPTCHA não está disponível. Tente recarregar a página.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
 
@@ -155,6 +159,7 @@ export const RegistrationForm = () => {
         description: "Por favor, complete o reCAPTCHA.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
 
@@ -174,6 +179,7 @@ export const RegistrationForm = () => {
         });
         // Reset do reCAPTCHA
         recaptchaRef.reset();
+        setIsLoading(false);
         return;
       }
 
@@ -186,6 +192,7 @@ export const RegistrationForm = () => {
       });
       // Reset do reCAPTCHA
       recaptchaRef.reset();
+      setIsLoading(false);
       return;
     }
 
@@ -197,6 +204,7 @@ export const RegistrationForm = () => {
         description: "Por favor, insira um CPF válido com 11 dígitos.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
 
@@ -207,7 +215,36 @@ export const RegistrationForm = () => {
         description: "Por favor, insira um email válido.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
+    }
+
+    // Verificação de CPF duplicado
+    try {
+      const cleanCPF = formData.cpf.replace(/\D/g, '');
+      const { data: existingRegistration, error: searchError } = await supabase
+        .from('registrations')
+        .select('id, nome')
+        .eq('cpf', cleanCPF)
+        .single();
+
+      if (searchError && searchError.code !== 'PGRST116') {
+        // PGRST116 = No rows found, que é o que queremos
+        // Se for outro erro, pode ser problema de conexão ou configuração
+        console.warn('Erro ao verificar CPF existente:', searchError);
+        // Continue com a inscrição mesmo com erro na verificação
+      } else if (existingRegistration) {
+        toast({
+          title: "CPF já cadastrado",
+          description: `Já existe uma inscrição para este CPF em nome de ${existingRegistration.nome}.`,
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+    } catch (cpfCheckError) {
+      console.warn('Erro na verificação de CPF:', cpfCheckError);
+      // Continue com a inscrição mesmo com erro na verificação
     }
 
     try {
@@ -260,6 +297,7 @@ export const RegistrationForm = () => {
                 });
               } else {
                 setShowSuccessModal(true);
+                setIsLoading(false);
               }
             } catch (emailError) {
               console.error('Erro no envio de email:', emailError);
@@ -268,8 +306,10 @@ export const RegistrationForm = () => {
                 description: "PDF gerado com sucesso, mas houve erro ao enviar email. Configure o banco para salvar os dados.",
                 variant: "default"
               });
+              setIsLoading(false);
             }
 
+            setIsLoading(false);
             return;
           } catch (pdfError) {
             console.error('PDF generation error:', pdfError);
@@ -278,6 +318,7 @@ export const RegistrationForm = () => {
               description: "Banco não configurado E erro ao gerar PDF. Configure o banco primeiro.",
               variant: "destructive"
             });
+            setIsLoading(false);
             return;
           }
         }
@@ -288,6 +329,7 @@ export const RegistrationForm = () => {
             description: `Campo obrigatório não preenchido: ${error.details}`,
             variant: "destructive"
           });
+          setIsLoading(false);
           return;
         }
 
@@ -296,6 +338,7 @@ export const RegistrationForm = () => {
           description: `${error.message} (Código: ${error.code})`,
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
       }
 
@@ -319,8 +362,10 @@ export const RegistrationForm = () => {
               description: "PDF gerado com sucesso, mas houve erro ao enviar o email de confirmação.",
               variant: "default"
             });
+            setIsLoading(false);
           } else {
             setShowSuccessModal(true);
+            setIsLoading(false);
           }
         } catch (emailError) {
           console.error('Erro no envio de email:', emailError);
@@ -329,6 +374,7 @@ export const RegistrationForm = () => {
             description: "PDF gerado com sucesso, mas houve erro ao enviar o email de confirmação.",
             variant: "default"
           });
+          setIsLoading(false);
         }
 
       } catch (pdfError) {
@@ -338,6 +384,7 @@ export const RegistrationForm = () => {
           description: "Inscrição salva com sucesso, mas houve erro ao gerar o PDF.",
           variant: "destructive"
         });
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
@@ -346,6 +393,7 @@ export const RegistrationForm = () => {
         description: "Erro inesperado ao processar inscrição. Verifique o console para detalhes.",
         variant: "destructive"
       });
+      setIsLoading(false);
     }
   };
 
@@ -504,9 +552,10 @@ export const RegistrationForm = () => {
         <Button
           type="submit"
           size="lg"
-          className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-accent text-lg px-12 py-3 shadow-elegant"
+          disabled={isLoading}
+          className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-accent text-lg px-12 py-3 shadow-elegant disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Gerar Inscrição PDF
+          {isLoading ? "Gerando PDF..." : "Gerar Inscrição PDF"}
         </Button>
       </div>
 
