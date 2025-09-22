@@ -222,18 +222,22 @@ export const RegistrationForm = () => {
     // Verificação de CPF duplicado
     try {
       const cleanCPF = formData.cpf.replace(/\D/g, '');
-      const { data: existingRegistration, error: searchError } = await supabase
+      console.log('Verificando CPF duplicado:', cleanCPF);
+
+      const { data: existingRegistrations, error: searchError } = await supabase
         .from('registrations')
         .select('id, nome')
-        .eq('cpf', cleanCPF)
-        .single();
+        .eq('cpf', cleanCPF);
 
-      if (searchError && searchError.code !== 'PGRST116') {
-        // PGRST116 = No rows found, que é o que queremos
-        // Se for outro erro, pode ser problema de conexão ou configuração
+      if (searchError) {
         console.warn('Erro ao verificar CPF existente:', searchError);
-        // Continue com a inscrição mesmo com erro na verificação
-      } else if (existingRegistration) {
+        // Se houver erro na busca, continue com a inscrição
+        // mas apenas se não for um erro de tabela não existente
+        if (searchError.message.includes('relation "public.registrations" does not exist')) {
+          console.log('Tabela registrations não existe, continuando sem verificação');
+        }
+      } else if (existingRegistrations && existingRegistrations.length > 0) {
+        const existingRegistration = existingRegistrations[0];
         toast({
           title: "CPF já cadastrado",
           description: `Já existe uma inscrição para este CPF em nome de ${existingRegistration.nome}.`,
@@ -241,6 +245,8 @@ export const RegistrationForm = () => {
         });
         setIsLoading(false);
         return;
+      } else {
+        console.log('CPF não encontrado no banco, pode continuar com a inscrição');
       }
     } catch (cpfCheckError) {
       console.warn('Erro na verificação de CPF:', cpfCheckError);
