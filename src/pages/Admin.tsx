@@ -373,17 +373,28 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
   const handleIngressoDeleteConfirm = async () => {
     if (!deletingIngresso) return;
 
-    const { error } = await supabase
-      .from('ingressos')
-      .delete()
-      .eq('id', deletingIngresso.id);
+    try {
+      const { error } = await supabase
+        .from('ingressos')
+        .delete()
+        .eq('id', deletingIngresso.id);
 
-    if (error) {
-      console.error('Error deleting ingresso:', error);
-    } else {
-      setIsIngressoAlertOpen(false);
-      setDeletingIngresso(null);
-      fetchIngressos();
+      if (error) {
+        console.error('Error deleting ingresso:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.ingressos" does not exist')) {
+          alert('Tabela de ingressos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao deletar ingresso: ' + error.message);
+        }
+      } else {
+        alert('Ingresso deletado com sucesso!');
+        setIsIngressoAlertOpen(false);
+        setDeletingIngresso(null);
+        fetchIngressos();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('Erro inesperado ao deletar ingresso. Verifique a conexão com o banco.');
     }
   };
 
@@ -424,17 +435,28 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
   const handleCursoDeleteConfirm = async () => {
     if (!deletingCurso) return;
 
-    const { error } = await supabase
-      .from('cursos')
-      .delete()
-      .eq('id', deletingCurso.id);
+    try {
+      const { error } = await supabase
+        .from('cursos')
+        .delete()
+        .eq('id', deletingCurso.id);
 
-    if (error) {
-      console.error('Error deleting curso:', error);
-    } else {
-      setIsCursoAlertOpen(false);
-      setDeletingCurso(null);
-      fetchCursos();
+      if (error) {
+        console.error('Error deleting curso:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.cursos" does not exist')) {
+          alert('Tabela de cursos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao deletar curso: ' + error.message);
+        }
+      } else {
+        alert('Inscrição no curso deletada com sucesso!');
+        setIsCursoAlertOpen(false);
+        setDeletingCurso(null);
+        fetchCursos();
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('Erro inesperado ao deletar curso. Verifique a conexão com o banco.');
     }
   };
 
