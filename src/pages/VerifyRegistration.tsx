@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Search } from 'lucide-react';
+import { CheckCircle, XCircle, Search, Mail } from 'lucide-react';
+import { generatePDF } from '@/utils/pdfGenerator';
 
 interface RegistrationData {
   id: number;
@@ -16,6 +17,16 @@ interface RegistrationData {
   telefone: string;
   cidade: string;
   uf: string;
+  rg?: string;
+  idade?: string;
+  endereco?: string;
+  altura?: string;
+  peso?: string;
+  pintura?: boolean;
+  foto?: boolean;
+  genero?: 'feminino' | 'masculino';
+  categoria?: string;
+  subcategoria?: string;
 }
 
 export const VerifyRegistration = () => {
@@ -27,6 +38,7 @@ export const VerifyRegistration = () => {
     registration?: RegistrationData;
     searched: boolean;
   }>({ found: false, searched: false });
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
 
   const formatCPF = (cpf: string) => {
     const numericCPF = cpf.replace(/\D/g, '').slice(0, 11);
@@ -104,6 +116,62 @@ export const VerifyRegistration = () => {
     }
 
     setIsLoading(false);
+  };
+
+  const handleResendEmail = async () => {
+    if (!searchResult.registration) return;
+
+    setIsResendingEmail(true);
+
+    try {
+      // Criar objeto de dados completo para o PDF e email
+      const registrationDataForEmail = {
+        ...searchResult.registration,
+        // Adicionar campos padrão caso não existam
+        rg: searchResult.registration.rg || '',
+        idade: searchResult.registration.idade || '',
+        endereco: searchResult.registration.endereco || '',
+        altura: searchResult.registration.altura || '0',
+        peso: searchResult.registration.peso || '0',
+        pintura: searchResult.registration.pintura || false,
+        foto: searchResult.registration.foto || false,
+        genero: searchResult.registration.genero || 'masculino',
+        categoria: searchResult.registration.categoria || 'OPEN',
+        subcategoria: searchResult.registration.subcategoria || 'OPEN',
+        regulamentoAceito: true
+      };
+
+      console.log('Reenviando email para:', registrationDataForEmail);
+
+      // Enviar email com PDF anexado
+      const emailResponse = await supabase.functions.invoke('send-email', {
+        body: { registrationData: registrationDataForEmail }
+      });
+
+      if (emailResponse.error) {
+        console.error('Erro ao reenviar email:', emailResponse.error);
+        toast({
+          title: "Erro ao reenviar email",
+          description: "Houve um problema ao reenviar o email de confirmação. Tente novamente.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Email reenviado!",
+          description: `Email de confirmação com PDF foi reenviado para ${searchResult.registration.email} e para inscricao@pbmusclearena.com`,
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao reenviar email:', error);
+      toast({
+        title: "Erro inesperado",
+        description: "Erro inesperado ao reenviar email. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+
+    setIsResendingEmail(false);
   };
 
   return (
@@ -193,10 +261,20 @@ export const VerifyRegistration = () => {
                       </div>
                     </div>
                   </div>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-sm mb-4">
                     Sua inscrição foi encontrada no sistema. Se você precisar fazer alguma alteração,
                     entre em contato com a organização do evento.
                   </p>
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleResendEmail}
+                      disabled={isResendingEmail}
+                      className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      {isResendingEmail ? "Reenviando..." : "Reenviar Email de Confirmação"}
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center space-y-4">
