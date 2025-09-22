@@ -236,10 +236,13 @@ const Cursos: React.FC = () => {
     try {
       // Remove máscaras dos campos antes de salvar e converte array de cursos em string
       const cleanedData = {
-        ...formData,
+        nome: formData.nome,
         cpf: formData.cpf.replace(/\D/g, ''),
         telefone: formData.telefone.replace(/\D/g, ''),
-        cursos: formData.cursos.join(', ') // Converte array em string separada por vírgulas
+        email: formData.email,
+        cidade: formData.cidade,
+        uf: formData.uf,
+        tipos_cursos: formData.cursos.join(', ') // Converte array em string separada por vírgulas
       };
 
       const { data, error } = await supabase

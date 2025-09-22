@@ -28,6 +28,24 @@ CREATE TABLE IF NOT EXISTS public.registrations (
     subcategoria TEXT
 );
 
+-- Tabela para armazenar as inscrições em cursos
+CREATE TABLE IF NOT EXISTS public.cursos (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+
+    -- Dados pessoais
+    nome TEXT NOT NULL,
+    cpf TEXT NOT NULL,
+    telefone TEXT NOT NULL,
+    email TEXT NOT NULL,
+    cidade TEXT NOT NULL,
+    uf TEXT NOT NULL,
+
+    -- Cursos selecionados (string separada por vírgulas)
+    cursos TEXT NOT NULL
+);
+
 -- Tabela para configurações do sistema (incluindo texto do regulamento)
 CREATE TABLE IF NOT EXISTS public.settings (
     id BIGSERIAL PRIMARY KEY,
@@ -129,6 +147,7 @@ INSERT INTO public.settings (key, value) VALUES (
 
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cursos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para permitir acesso público às tabelas
@@ -136,6 +155,11 @@ CREATE POLICY "Enable read access for all users" ON public.registrations FOR SEL
 CREATE POLICY "Enable insert access for all users" ON public.registrations FOR INSERT WITH CHECK (true);
 CREATE POLICY "Enable update access for all users" ON public.registrations FOR UPDATE USING (true);
 CREATE POLICY "Enable delete access for all users" ON public.registrations FOR DELETE USING (true);
+
+CREATE POLICY "Enable read access for all users" ON public.cursos FOR SELECT USING (true);
+CREATE POLICY "Enable insert access for all users" ON public.cursos FOR INSERT WITH CHECK (true);
+CREATE POLICY "Enable update access for all users" ON public.cursos FOR UPDATE USING (true);
+CREATE POLICY "Enable delete access for all users" ON public.cursos FOR DELETE USING (true);
 
 CREATE POLICY "Enable read access for all users" ON public.settings FOR SELECT USING (true);
 CREATE POLICY "Enable insert access for all users" ON public.settings FOR INSERT WITH CHECK (true);
@@ -146,4 +170,7 @@ CREATE POLICY "Enable delete access for all users" ON public.settings FOR DELETE
 CREATE INDEX IF NOT EXISTS idx_registrations_cpf ON public.registrations(cpf);
 CREATE INDEX IF NOT EXISTS idx_registrations_email ON public.registrations(email);
 CREATE INDEX IF NOT EXISTS idx_registrations_nome ON public.registrations(nome);
+CREATE INDEX IF NOT EXISTS idx_cursos_cpf ON public.cursos(cpf);
+CREATE INDEX IF NOT EXISTS idx_cursos_email ON public.cursos(email);
+CREATE INDEX IF NOT EXISTS idx_cursos_nome ON public.cursos(nome);
 CREATE INDEX IF NOT EXISTS idx_settings_key ON public.settings(key);
