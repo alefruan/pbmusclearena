@@ -8,6 +8,8 @@ import Admin from "./pages/Admin";
 import Login from "./pages/Login"; // Import the Login component
 import Regulamento from "./pages/Regulamento";
 import { VerifyRegistration } from "./pages/VerifyRegistration";
+import Ingressos from "./pages/Ingressos";
+import IngressoSucesso from "./pages/IngressoSucesso";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/regulamento" element={<Regulamento />} />
           <Route path="/verificar" element={<VerifyRegistration />} />
+          <Route path="/ingressos" element={<Ingressos />} />
+          <Route path="/ingresso-sucesso" element={<IngressoSucesso />} />
           <Route
             path="/admin"
             element={

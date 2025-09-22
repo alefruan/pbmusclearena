@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, X, FileText } from 'lucide-react';
+import { Pencil, X, FileText, Ticket } from 'lucide-react';
 
 interface RegistrationData {
   id?: number;
@@ -49,6 +49,16 @@ interface RegistrationData {
   subcategoria: string;
 }
 
+interface IngressoData {
+  id?: number;
+  nome: string;
+  cpf: string;
+  telefone: string;
+  email: string;
+  cidade: string;
+  uf: string;
+}
+
 const Admin: React.FC = () => {
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
   const [editingRegistration, setEditingRegistration] = useState<RegistrationData | null>(null);
@@ -61,6 +71,16 @@ const Admin: React.FC = () => {
   const [regulamentoLoading, setRegulamentoLoading] = useState(false);
   const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
   const [inscricoesLoading, setInscricoesLoading] = useState(false);
+
+  // Estados para ingressos
+  const [ingressos, setIngressos] = useState<IngressoData[]>([]);
+  const [editingIngresso, setEditingIngresso] = useState<IngressoData | null>(null);
+  const [deletingIngresso, setDeletingIngresso] = useState<IngressoData | null>(null);
+  const [isIngressoModalOpen, setIsIngressoModalOpen] = useState(false);
+  const [isIngressoAlertOpen, setIsIngressoAlertOpen] = useState(false);
+  const [ingressoSearchTerm, setIngressoSearchTerm] = useState('');
+  const [showIngressos, setShowIngressos] = useState(false);
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -85,11 +105,34 @@ const Admin: React.FC = () => {
     }
   };
 
+  const fetchIngressos = async () => {
+    try {
+      const { data, error } = await supabase.from('ingressos').select('*');
+      if (error) {
+        console.error('Error fetching ingressos:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.ingressos" does not exist')) {
+          alert('Tabela de ingressos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        }
+      } else {
+        setIngressos(data as IngressoData[]);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('Erro inesperado ao buscar ingressos. Verifique a conexão com o banco.');
+    }
+  };
+
   useEffect(() => {
-    fetchRegistrations();
-    fetchRegulamento();
-    fetchInscricoesStatus();
-  }, []);
+    const loadData = async () => {
+      await fetchRegistrations();
+      await fetchRegulamento();
+      await fetchInscricoesStatus();
+      if (showIngressos) {
+        await fetchIngressos();
+      }
+    };
+    loadData();
+  }, [showIngressos]);
 
   const fetchRegulamento = async () => {
     try {
@@ -263,10 +306,61 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
     }
   };
 
+  // Funções para ingressos
+  const handleIngressoEditClick = (ingresso: IngressoData) => {
+    setEditingIngresso(ingresso);
+    setIsIngressoModalOpen(true);
+  };
+
+  const handleIngressoUpdate = async () => {
+    if (!editingIngresso) return;
+
+    const { error } = await supabase
+      .from('ingressos')
+      .update(editingIngresso)
+      .eq('id', editingIngresso.id);
+
+    if (error) {
+      console.error('Error updating ingresso:', error);
+    } else {
+      setIsIngressoModalOpen(false);
+      setEditingIngresso(null);
+      fetchIngressos();
+    }
+  };
+
+  const handleIngressoDeleteClick = (ingresso: IngressoData) => {
+    setDeletingIngresso(ingresso);
+    setIsIngressoAlertOpen(true);
+  };
+
+  const handleIngressoDeleteConfirm = async () => {
+    if (!deletingIngresso) return;
+
+    const { error } = await supabase
+      .from('ingressos')
+      .delete()
+      .eq('id', deletingIngresso.id);
+
+    if (error) {
+      console.error('Error deleting ingresso:', error);
+    } else {
+      setIsIngressoAlertOpen(false);
+      setDeletingIngresso(null);
+      fetchIngressos();
+    }
+  };
+
   const filteredRegistrations = registrations.filter(
     (registration) =>
       registration.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       registration.cpf.includes(searchTerm)
+  );
+
+  const filteredIngressos = ingressos.filter(
+    (ingresso) =>
+      ingresso.nome.toLowerCase().includes(ingressoSearchTerm.toLowerCase()) ||
+      ingresso.cpf.includes(ingressoSearchTerm)
   );
 
   return (
@@ -279,6 +373,13 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Painel Administrativo</h1>
         <div className="flex gap-2">
+          <Button
+            onClick={() => setShowIngressos(!showIngressos)}
+            variant="outline"
+          >
+            <Ticket className="h-4 w-4 mr-2" />
+            {showIngressos ? 'Ver Inscrições' : 'Ver Ingressos'}
+          </Button>
           <Button onClick={handleRegulamentoEdit} variant="outline">
             <FileText className="h-4 w-4 mr-2" />
             Editar Regulamento
@@ -308,44 +409,87 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       </div>
       <div className="mb-4">
         <Input
-          placeholder="Buscar por nome ou CPF..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder={showIngressos ? "Buscar ingresso por nome ou CPF..." : "Buscar inscrição por nome ou CPF..."}
+          value={showIngressos ? ingressoSearchTerm : searchTerm}
+          onChange={(e) => showIngressos ? setIngressoSearchTerm(e.target.value) : setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="py-2 px-4 border-b">Nome</th>
-              <th className="py-2 px-4 border-b">CPF</th>
-              <th className="py-2 px-4 border-b">Telefone</th>
-              <th className="py-2 px-4 border-b">Email</th>
-              <th className="py-2 px-4 border-b">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRegistrations.map((registration) => (
-              <tr key={registration.id}>
-                <td className="py-2 px-4 border-b">{registration.nome}</td>
-                <td className="py-2 px-4 border-b">{registration.cpf}</td>
-                <td className="py-2 px-4 border-b">{registration.telefone}</td>
-                <td className="py-2 px-4 border-b">{registration.email}</td>
-                <td className="py-2 px-4 border-b">
-                  <Button onClick={() => generatePDF(registration)}>Gerar PDF</Button>
-                  <Button onClick={() => handleEditClick(registration)} className="ml-2">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button onClick={() => handleDeleteClick(registration)} className="ml-2" variant="destructive">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </td>
+
+      {/* Seção de Inscrições */}
+      {!showIngressos && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b">Nome</th>
+                <th className="py-2 px-4 border-b">CPF</th>
+                <th className="py-2 px-4 border-b">Telefone</th>
+                <th className="py-2 px-4 border-b">Email</th>
+                <th className="py-2 px-4 border-b">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filteredRegistrations.map((registration) => (
+                <tr key={registration.id}>
+                  <td className="py-2 px-4 border-b">{registration.nome}</td>
+                  <td className="py-2 px-4 border-b">{registration.cpf}</td>
+                  <td className="py-2 px-4 border-b">{registration.telefone}</td>
+                  <td className="py-2 px-4 border-b">{registration.email}</td>
+                  <td className="py-2 px-4 border-b">
+                    <Button onClick={() => generatePDF(registration)}>Gerar PDF</Button>
+                    <Button onClick={() => handleEditClick(registration)} className="ml-2">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={() => handleDeleteClick(registration)} className="ml-2" variant="destructive">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Seção de Ingressos */}
+      {showIngressos && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b">ID</th>
+                <th className="py-2 px-4 border-b">Nome</th>
+                <th className="py-2 px-4 border-b">CPF</th>
+                <th className="py-2 px-4 border-b">Telefone</th>
+                <th className="py-2 px-4 border-b">Email</th>
+                <th className="py-2 px-4 border-b">Cidade/UF</th>
+                <th className="py-2 px-4 border-b">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredIngressos.map((ingresso) => (
+                <tr key={ingresso.id}>
+                  <td className="py-2 px-4 border-b">#{String(ingresso.id).padStart(6, '0')}</td>
+                  <td className="py-2 px-4 border-b">{ingresso.nome}</td>
+                  <td className="py-2 px-4 border-b">{ingresso.cpf}</td>
+                  <td className="py-2 px-4 border-b">{ingresso.telefone}</td>
+                  <td className="py-2 px-4 border-b">{ingresso.email}</td>
+                  <td className="py-2 px-4 border-b">{ingresso.cidade}/{ingresso.uf}</td>
+                  <td className="py-2 px-4 border-b">
+                    <Button onClick={() => handleIngressoEditClick(ingresso)} className="mr-2">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={() => handleIngressoDeleteClick(ingresso)} variant="destructive">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {editingRegistration && (
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -421,6 +565,57 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modais para Ingressos */}
+      {editingIngresso && (
+        <Dialog open={isIngressoModalOpen} onOpenChange={setIsIngressoModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Ingresso</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {Object.keys(editingIngresso).map((key) => (
+                <div key={key} className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor={key} className="text-right">
+                    {key}
+                  </label>
+                  <input
+                    id={key}
+                    value={editingIngresso[key as keyof IngressoData]?.toString() || ''}
+                    onChange={(e) =>
+                      setEditingIngresso({
+                        ...editingIngresso,
+                        [key]: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+              ))}
+            </div>
+            <Button onClick={handleIngressoUpdate}>Salvar</Button>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {deletingIngresso && (
+        <AlertDialog open={isIngressoAlertOpen} onOpenChange={setIsIngressoAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Essa ação não pode ser desfeita. Isso irá deletar permanentemente o ingresso de {
+                  deletingIngresso.nome
+                }.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleIngressoDeleteConfirm}>Deletar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 };
