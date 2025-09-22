@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login"; // Import the Login component
 import Regulamento from "./pages/Regulamento";
+import { VerifyRegistration } from "./pages/VerifyRegistration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/regulamento" element={<Regulamento />} />
+          <Route path="/verificar" element={<VerifyRegistration />} />
           <Route
             path="/admin"
             element={

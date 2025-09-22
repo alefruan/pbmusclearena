@@ -85,6 +85,17 @@ const Index = () => {
           <p className="text-xl md:text-2xl font-medium">
             Sistema de Inscrição Online
           </p>
+          <div className="mt-4 mb-4">
+            <Link
+              to="/verificar"
+              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Verificar Inscrição
+            </Link>
+          </div>
           <div className="mt-4 flex items-center justify-center gap-2">
             <a
               href="https://chat.whatsapp.com/JnNyceV1FQO3zSldZWIw2o?mode=ems_wa_c"
@@ -185,7 +196,10 @@ const Index = () => {
           <p className="text-sm text-primary-foreground/60 mt-4">
             © 2024 PB MUSCLE ARENA. Todos os direitos reservados.
           </p>
-          <div className="mt-2">
+          <div className="mt-2 space-x-4">
+            <Link to="/verificar" className="text-primary-foreground/80 hover:underline">
+              Verificar Inscrição
+            </Link>
             <Link to="/admin" className="text-primary-foreground/80 hover:underline">
               Admin
             </Link>
