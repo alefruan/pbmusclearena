@@ -28,10 +28,9 @@ CREATE POLICY "Enable read access for all users" ON public.cursos FOR SELECT USI
 -- Permitir INSERT para todos (para permitir cadastro de cursos)
 CREATE POLICY "Enable insert for all users" ON public.cursos FOR INSERT WITH CHECK (true);
 
--- Permitir UPDATE e DELETE apenas para usuários autenticados (administradores)
--- Você pode ajustar essas políticas conforme suas necessidades de segurança
-CREATE POLICY "Enable update for authenticated users only" ON public.cursos FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable delete for authenticated users only" ON public.cursos FOR DELETE USING (auth.role() = 'authenticated');
+-- Permitir UPDATE e DELETE para todos os usuários (igual à tabela registrations)
+CREATE POLICY "Enable update for all users" ON public.cursos FOR UPDATE USING (true);
+CREATE POLICY "Enable delete for all users" ON public.cursos FOR DELETE USING (true);
 
 -- Trigger para atualizar o campo updated_at automaticamente
 -- Usar a função existente ou criar se não existir

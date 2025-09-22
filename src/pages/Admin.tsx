@@ -127,13 +127,21 @@ const Admin: React.FC = () => {
 
   const fetchIngressos = async () => {
     try {
-      const { data, error } = await supabase.from('ingressos').select('*');
+      console.log('Fazendo fetch dos ingressos...');
+      const { data, error } = await supabase
+        .from('ingressos')
+        .select('*')
+        .order('id', { ascending: true });
+
+      console.log('Resultado fetch ingressos:', { data, error });
+
       if (error) {
         console.error('Error fetching ingressos:', error);
         if (error.code === 'PGRST116' || error.message.includes('relation "public.ingressos" does not exist')) {
           alert('Tabela de ingressos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
         }
       } else {
+        console.log('Atualizando state dos ingressos com:', data);
         setIngressos(data as IngressoData[]);
       }
     } catch (error) {
@@ -144,13 +152,21 @@ const Admin: React.FC = () => {
 
   const fetchCursos = async () => {
     try {
-      const { data, error } = await supabase.from('cursos').select('*');
+      console.log('Fazendo fetch dos cursos...');
+      const { data, error } = await supabase
+        .from('cursos')
+        .select('*')
+        .order('id', { ascending: true });
+
+      console.log('Resultado fetch cursos:', { data, error });
+
       if (error) {
         console.error('Error fetching cursos:', error);
         if (error.code === 'PGRST116' || error.message.includes('relation "public.cursos" does not exist')) {
           alert('Tabela de cursos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
         }
       } else {
+        console.log('Atualizando state dos cursos com:', data);
         setCursos(data as CursoData[]);
       }
     } catch (error) {
@@ -328,17 +344,56 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
   const handleDeleteConfirm = async () => {
     if (!deletingRegistration) return;
 
-    const { error } = await supabase
-      .from('registrations')
-      .delete()
-      .eq('id', deletingRegistration.id);
+    try {
+      console.log('Tentando deletar inscrição:', deletingRegistration);
+      console.log('ID da inscrição (tipo):', typeof deletingRegistration.id, deletingRegistration.id);
 
-    if (error) {
-      console.error('Error deleting registration:', error);
-    } else {
+      // Primeiro, vamos verificar se o registro existe
+      const { data: existingData, error: selectError } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('id', deletingRegistration.id);
+
+      console.log('Verificação de existência:', { existingData, selectError });
+
+      if (selectError) {
+        console.error('Erro ao verificar existência:', selectError);
+        return;
+      }
+
+      if (!existingData || existingData.length === 0) {
+        console.log('Registro não encontrado para deletar');
+        // Remove da interface mesmo que não esteja no banco
+        setIsAlertOpen(false);
+        setDeletingRegistration(null);
+        await fetchRegistrations();
+        return;
+      }
+
+      // Tenta deletar convertendo o ID para número
+      const { data, error, count } = await supabase
+        .from('registrations')
+        .delete()
+        .eq('id', Number(deletingRegistration.id))
+        .select();
+
+      console.log('Resultado do delete:', { data, error, count });
+
+      if (error) {
+        console.error('Error deleting registration:', error);
+        return;
+      }
+
+      console.log('Inscrição deletada com sucesso!');
       setIsAlertOpen(false);
       setDeletingRegistration(null);
-      fetchRegistrations(); // Refresh the list
+
+      // Pequeno delay para garantir que o banco processou a exclusão
+      setTimeout(async () => {
+        await fetchRegistrations();
+      }, 100);
+    } catch (error) {
+      console.error('Unexpected error:', error);
     }
   };
 
@@ -374,27 +429,55 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
     if (!deletingIngresso) return;
 
     try {
-      const { error } = await supabase
+      console.log('Tentando deletar ingresso:', deletingIngresso);
+      console.log('ID do ingresso (tipo):', typeof deletingIngresso.id, deletingIngresso.id);
+
+      // Primeiro, vamos verificar se o registro existe
+      const { data: existingData, error: selectError } = await supabase
+        .from('ingressos')
+        .select('*')
+        .eq('id', deletingIngresso.id);
+
+      console.log('Verificação de existência:', { existingData, selectError });
+
+      if (selectError) {
+        console.error('Erro ao verificar existência:', selectError);
+        return;
+      }
+
+      if (!existingData || existingData.length === 0) {
+        console.log('Registro não encontrado para deletar');
+        // Remove da interface mesmo que não esteja no banco
+        setIsIngressoAlertOpen(false);
+        setDeletingIngresso(null);
+        await fetchIngressos();
+        return;
+      }
+
+      // Tenta deletar convertendo o ID para número
+      const { data, error, count } = await supabase
         .from('ingressos')
         .delete()
-        .eq('id', deletingIngresso.id);
+        .eq('id', Number(deletingIngresso.id))
+        .select();
+
+      console.log('Resultado do delete:', { data, error, count });
 
       if (error) {
         console.error('Error deleting ingresso:', error);
-        if (error.code === 'PGRST116' || error.message.includes('relation "public.ingressos" does not exist')) {
-          alert('Tabela de ingressos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
-        } else {
-          alert('Erro ao deletar ingresso: ' + error.message);
-        }
-      } else {
-        alert('Ingresso deletado com sucesso!');
-        setIsIngressoAlertOpen(false);
-        setDeletingIngresso(null);
-        fetchIngressos();
+        return;
       }
+
+      console.log('Ingresso deletado com sucesso!');
+      setIsIngressoAlertOpen(false);
+      setDeletingIngresso(null);
+
+      // Pequeno delay para garantir que o banco processou a exclusão
+      setTimeout(async () => {
+        await fetchIngressos();
+      }, 100);
     } catch (error) {
       console.error('Unexpected error:', error);
-      alert('Erro inesperado ao deletar ingresso. Verifique a conexão com o banco.');
     }
   };
 
@@ -436,27 +519,55 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
     if (!deletingCurso) return;
 
     try {
-      const { error } = await supabase
+      console.log('Tentando deletar curso:', deletingCurso);
+      console.log('ID do curso (tipo):', typeof deletingCurso.id, deletingCurso.id);
+
+      // Primeiro, vamos verificar se o registro existe
+      const { data: existingData, error: selectError } = await supabase
+        .from('cursos')
+        .select('*')
+        .eq('id', deletingCurso.id);
+
+      console.log('Verificação de existência:', { existingData, selectError });
+
+      if (selectError) {
+        console.error('Erro ao verificar existência:', selectError);
+        return;
+      }
+
+      if (!existingData || existingData.length === 0) {
+        console.log('Registro não encontrado para deletar');
+        // Remove da interface mesmo que não esteja no banco
+        setIsCursoAlertOpen(false);
+        setDeletingCurso(null);
+        await fetchCursos();
+        return;
+      }
+
+      // Tenta deletar convertendo o ID para número
+      const { data, error, count } = await supabase
         .from('cursos')
         .delete()
-        .eq('id', deletingCurso.id);
+        .eq('id', Number(deletingCurso.id))
+        .select();
+
+      console.log('Resultado do delete:', { data, error, count });
 
       if (error) {
         console.error('Error deleting curso:', error);
-        if (error.code === 'PGRST116' || error.message.includes('relation "public.cursos" does not exist')) {
-          alert('Tabela de cursos não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
-        } else {
-          alert('Erro ao deletar curso: ' + error.message);
-        }
-      } else {
-        alert('Inscrição no curso deletada com sucesso!');
-        setIsCursoAlertOpen(false);
-        setDeletingCurso(null);
-        fetchCursos();
+        return;
       }
+
+      console.log('Curso deletado com sucesso!');
+      setIsCursoAlertOpen(false);
+      setDeletingCurso(null);
+
+      // Pequeno delay para garantir que o banco processou a exclusão
+      setTimeout(async () => {
+        await fetchCursos();
+      }, 100);
     } catch (error) {
       console.error('Unexpected error:', error);
-      alert('Erro inesperado ao deletar curso. Verifique a conexão com o banco.');
     }
   };
 
