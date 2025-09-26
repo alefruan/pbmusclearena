@@ -119,75 +119,24 @@ const Index = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          {inscricoesAbertas ? (
-            <>
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-4">
-                  Inscreva-se no Evento de Fisiculturismo
-                </h2>
-                <p className="text-lg text-muted-foreground mb-4">
-                  Preencha o formulário abaixo e gere automaticamente seu PDF de inscrição para impressão.
-                </p>
-                <p className="text-base text-muted-foreground">
-                  Verifique se você já está inscrito{' '}
-                  <Link
-                    to="/verificar"
-                    className="text-orange-600 hover:text-orange-700 font-medium underline"
-                  >
-                    clique aqui
-                  </Link>
-                </p>
+          <div className="text-center py-16">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-2xl mx-auto">
+              <div className="text-red-600 mb-4">
+                <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.96-.833-2.73 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
               </div>
-
-              <RegistrationForm />
-            </>
-          ) : (
-            <div className="text-center py-16">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-2xl mx-auto">
-                <div className="text-red-600 mb-4">
-                  <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.96-.833-2.73 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <h2 className="text-3xl font-bold text-red-800 mb-4">
-                  Inscrições Fechadas
-                </h2>
-                <p className="text-lg text-red-700 mb-6">
-                  Infelizmente o período de inscrições não está disponível no momento.
-                </p>
-
-                <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">
-                    As inscrições abrirão em:
-                  </h3>
-                  <div className="flex justify-center gap-2 md:gap-4 text-center">
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.days}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Dias</div>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.hours}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Horas</div>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.minutes}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Minutos</div>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.seconds}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Segundos</div>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mt-4 text-sm">
-                    Abertura: 22 de setembro de 2025 às 00:00 (horário de Brasília)
-                  </p>
-                </div>
-                <p className="text-red-600">
-                  Acompanhe nosso site para ficar por dentro do periodo de inscrição!
-                </p>
-              </div>
+              <h2 className="text-3xl font-bold text-red-800 mb-4">
+                Inscrições Encerradas
+              </h2>
+              <p className="text-lg text-red-700 mb-6">
+                O período de inscrições foi encerrado.
+              </p>
+              <p className="text-red-600">
+                Agradecemos o interesse e aguardem próximas edições!
+              </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
