@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, X, FileText, Ticket, GraduationCap } from 'lucide-react';
+import { Pencil, X, FileText, Ticket, GraduationCap, Plus } from 'lucide-react';
 
 interface RegistrationData {
   id?: number;
@@ -86,6 +88,21 @@ const Admin: React.FC = () => {
   const [ingressosLoading, setIngressosLoading] = useState(false);
   const [cursosAbertos, setCursosAbertos] = useState(true);
   const [cursosLoading, setCursosLoading] = useState(false);
+
+  // Estados para nova inscrição
+  const [isNovaInscricaoModalOpen, setIsNovaInscricaoModalOpen] = useState(false);
+  const [novaInscricaoLoading, setNovaInscricaoLoading] = useState(false);
+  const [novaInscricaoData, setNovaInscricaoData] = useState<Partial<RegistrationData>>({
+    nome: '',
+    cpf: '',
+    rg: '',
+    idade: '',
+    endereco: '',
+    cidade: '',
+    uf: 'PB',
+    telefone: '',
+    email: ''
+  });
 
   // Estados para ingressos
   const [ingressos, setIngressos] = useState<IngressoData[]>([]);
@@ -387,6 +404,96 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       alert('Erro inesperado ao salvar o status dos cursos. Verifique a conexão com o banco.');
     } finally {
       setCursosLoading(false);
+    }
+  };
+
+  const formatCPFModal = (cpf: string) => {
+    const numericCPF = cpf.replace(/\D/g, '').slice(0, 11);
+    return numericCPF
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+
+  const formatTelefoneModal = (telefone: string) => {
+    const numericTel = telefone.replace(/\D/g, '').slice(0, 11);
+    return numericTel
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2');
+  };
+
+  const handleNovaInscricaoInputChange = (field: string, value: string) => {
+    if (field === 'cpf') {
+      value = formatCPFModal(value);
+    } else if (field === 'telefone') {
+      value = formatTelefoneModal(value);
+    }
+
+    setNovaInscricaoData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleNovaInscricaoSubmit = async () => {
+    setNovaInscricaoLoading(true);
+    try {
+      // Validação básica
+      if (!novaInscricaoData.nome || !novaInscricaoData.cpf) {
+        alert('Por favor, preencha pelo menos os campos obrigatórios: Nome e CPF.');
+        setNovaInscricaoLoading(false);
+        return;
+      }
+
+      // Remove máscaras do CPF e telefone
+      const cleanedData = {
+        ...novaInscricaoData,
+        cpf: novaInscricaoData.cpf?.replace(/\D/g, '') || '',
+        telefone: novaInscricaoData.telefone?.replace(/\D/g, '') || '',
+        // Campos obrigatórios com valores padrão
+        altura: '',
+        peso: '',
+        pintura: false,
+        foto: false,
+        genero: 'masculino' as const,
+        categoria: '',
+        subcategoria: ''
+      };
+
+      const { data, error } = await supabase
+        .from('registrations')
+        .insert([cleanedData])
+        .select();
+
+      if (error) {
+        console.error('Error creating registration:', error);
+        if (error.message.includes('relation "public.registrations" does not exist')) {
+          alert('Tabela registrations não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao criar inscrição: ' + error.message);
+        }
+      } else {
+        alert('Inscrição criada com sucesso!');
+        setIsNovaInscricaoModalOpen(false);
+        // Reset form
+        setNovaInscricaoData({
+          nome: '',
+          cpf: '',
+          rg: '',
+          idade: '',
+          endereco: '',
+          cidade: '',
+          uf: 'PB',
+          telefone: '',
+          email: ''
+        });
+        await fetchRegistrations(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro inesperado ao criar inscrição. Verifique a conexão com o banco.');
+    } finally {
+      setNovaInscricaoLoading(false);
     }
   };
 
@@ -796,6 +903,15 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
         </div>
       </div>
       <div className="mb-4 flex items-center gap-4">
+        {!showIngressos && !showCursos && (
+          <Button
+            onClick={() => setIsNovaInscricaoModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Inscrição
+          </Button>
+        )}
         <Input
           placeholder={
             showCursos ? "Buscar curso por nome ou CPF..." :
@@ -1147,6 +1263,109 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Modal para Nova Inscrição */}
+      <Dialog open={isNovaInscricaoModalOpen} onOpenChange={setIsNovaInscricaoModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nova Inscrição Manual</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            {/* Dados Pessoais */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-yellow-700 bg-yellow-100 p-2 rounded">IDENTIFICAÇÃO</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Nome Completo *</label>
+                  <Input
+                    value={novaInscricaoData.nome || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('nome', e.target.value)}
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">CPF *</label>
+                  <Input
+                    value={novaInscricaoData.cpf || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('cpf', e.target.value)}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">RG</label>
+                  <Input
+                    value={novaInscricaoData.rg || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('rg', e.target.value)}
+                    placeholder="RG"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Idade</label>
+                  <Input
+                    value={novaInscricaoData.idade || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('idade', e.target.value)}
+                    placeholder="Idade"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Telefone</label>
+                  <Input
+                    value={novaInscricaoData.telefone || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('telefone', e.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Email</label>
+                  <Input
+                    value={novaInscricaoData.email || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('email', e.target.value)}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium">Endereço</label>
+                  <Input
+                    value={novaInscricaoData.endereco || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('endereco', e.target.value)}
+                    placeholder="Endereço completo"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Cidade</label>
+                  <Input
+                    value={novaInscricaoData.cidade || ''}
+                    onChange={(e) => handleNovaInscricaoInputChange('cidade', e.target.value)}
+                    placeholder="Cidade"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">UF</label>
+                  <Select value={novaInscricaoData.uf || 'PB'} onValueChange={(value) => handleNovaInscricaoInputChange('uf', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="UF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map((uf) => (
+                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsNovaInscricaoModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleNovaInscricaoSubmit} disabled={novaInscricaoLoading} className="bg-green-600 hover:bg-green-700">
+              {novaInscricaoLoading ? 'Salvando...' : 'Salvar Inscrição'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
