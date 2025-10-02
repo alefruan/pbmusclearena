@@ -7,32 +7,9 @@ import { supabase } from '@/lib/supabaseClient';
 const Index = () => {
   const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     fetchInscricoesStatus();
-
-    const calculateTimeLeft = () => {
-      const targetDate = new Date('2025-09-22T00:00:00-03:00');
-      const now = new Date();
-      const difference = targetDate.getTime() - now.getTime();
-
-      if (difference > 0) {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-        setTimeLeft({ days, hours, minutes, seconds });
-      } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      }
-    };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
-
-    return () => clearInterval(timer);
   }, []);
 
   const fetchInscricoesStatus = async () => {
@@ -156,32 +133,6 @@ const Index = () => {
                   Infelizmente o período de inscrições não está disponível no momento.
                 </p>
 
-                <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">
-                    As inscrições abrirão em:
-                  </h3>
-                  <div className="flex justify-center gap-2 md:gap-4 text-center">
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.days}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Dias</div>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.hours}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Horas</div>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.minutes}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Minutos</div>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3 md:p-4 min-w-[70px] md:min-w-[80px]">
-                      <div className="text-xl md:text-2xl font-bold text-orange-600">{timeLeft.seconds}</div>
-                      <div className="text-xs md:text-sm text-orange-600">Segundos</div>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 mt-4 text-sm">
-                    Abertura: 22 de setembro de 2025 às 00:00 (horário de Brasília)
-                  </p>
-                </div>
                 <p className="text-red-600">
                   Acompanhe nosso site para ficar por dentro do periodo de inscrição!
                 </p>
