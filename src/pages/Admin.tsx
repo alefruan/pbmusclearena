@@ -82,6 +82,10 @@ const Admin: React.FC = () => {
   const [regulamentoLoading, setRegulamentoLoading] = useState(false);
   const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
   const [inscricoesLoading, setInscricoesLoading] = useState(false);
+  const [ingressosAbertos, setIngressosAbertos] = useState(true);
+  const [ingressosLoading, setIngressosLoading] = useState(false);
+  const [cursosAbertos, setCursosAbertos] = useState(true);
+  const [cursosLoading, setCursosLoading] = useState(false);
 
   // Estados para ingressos
   const [ingressos, setIngressos] = useState<IngressoData[]>([]);
@@ -180,6 +184,8 @@ const Admin: React.FC = () => {
       await fetchRegistrations();
       await fetchRegulamento();
       await fetchInscricoesStatus();
+      await fetchIngressosStatus();
+      await fetchCursosStatus();
       await fetchIngressos(); // Sempre carregar ingressos para mostrar o contador
       await fetchCursos(); // Sempre carregar cursos para mostrar o contador
     };
@@ -254,6 +260,52 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
     }
   };
 
+  const fetchIngressosStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'ingressos_abertos')
+        .single();
+
+      if (error) {
+        console.error('Error fetching ingressos status:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.settings" does not exist')) {
+          console.warn('Tabela settings não encontrada. Mantendo ingressos abertos por padrão.');
+        }
+        setIngressosAbertos(true);
+      } else {
+        setIngressosAbertos(data?.value === 'true');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setIngressosAbertos(true);
+    }
+  };
+
+  const fetchCursosStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'cursos_abertos')
+        .single();
+
+      if (error) {
+        console.error('Error fetching cursos status:', error);
+        if (error.code === 'PGRST116' || error.message.includes('relation "public.settings" does not exist')) {
+          console.warn('Tabela settings não encontrada. Mantendo cursos abertos por padrão.');
+        }
+        setCursosAbertos(true);
+      } else {
+        setCursosAbertos(data?.value === 'true');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setCursosAbertos(true);
+    }
+  };
+
   const handleInscricoesToggle = async (checked: boolean) => {
     setInscricoesLoading(true);
     try {
@@ -279,6 +331,62 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       alert('Erro inesperado ao salvar o status das inscrições. Verifique a conexão com o banco.');
     } finally {
       setInscricoesLoading(false);
+    }
+  };
+
+  const handleIngressosToggle = async (checked: boolean) => {
+    setIngressosLoading(true);
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert([{ key: 'ingressos_abertos', value: checked.toString() }], {
+          onConflict: 'key'
+        });
+
+      if (error) {
+        console.error('Error saving ingressos status:', error);
+        if (error.message.includes('relation "public.settings" does not exist')) {
+          alert('Tabela settings não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao salvar o status dos ingressos: ' + error.message);
+        }
+      } else {
+        setIngressosAbertos(checked);
+        alert(`Ingressos ${checked ? 'abertos' : 'fechados'} com sucesso!`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro inesperado ao salvar o status dos ingressos. Verifique a conexão com o banco.');
+    } finally {
+      setIngressosLoading(false);
+    }
+  };
+
+  const handleCursosToggle = async (checked: boolean) => {
+    setCursosLoading(true);
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert([{ key: 'cursos_abertos', value: checked.toString() }], {
+          onConflict: 'key'
+        });
+
+      if (error) {
+        console.error('Error saving cursos status:', error);
+        if (error.message.includes('relation "public.settings" does not exist')) {
+          alert('Tabela settings não encontrada. Execute o script database-setup.sql no Supabase primeiro.');
+        } else {
+          alert('Erro ao salvar o status dos cursos: ' + error.message);
+        }
+      } else {
+        setCursosAbertos(checked);
+        alert(`Cursos ${checked ? 'abertos' : 'fechados'} com sucesso!`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro inesperado ao salvar o status dos cursos. Verifique a conexão com o banco.');
+    } finally {
+      setCursosLoading(false);
     }
   };
 
@@ -623,22 +731,67 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
         </div>
       </div>
 
-      <div className="mb-6 p-4 bg-card rounded-lg border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">Status das Inscrições</h3>
-            <p className="text-sm text-muted-foreground">
-              {inscricoesAbertas ? 'As inscrições estão abertas' : 'As inscrições estão fechadas'}
-            </p>
+      <div className="mb-6 space-y-4">
+        {/* Status das Inscrições */}
+        <div className="p-4 bg-card rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">Status das Inscrições</h3>
+              <p className="text-sm text-muted-foreground">
+                {inscricoesAbertas ? 'As inscrições estão abertas' : 'As inscrições estão fechadas'}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">Fechado</span>
+              <Switch
+                checked={inscricoesAbertas}
+                onCheckedChange={handleInscricoesToggle}
+                disabled={inscricoesLoading}
+              />
+              <span className="text-sm">Aberto</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">Fechado</span>
-            <Switch
-              checked={inscricoesAbertas}
-              onCheckedChange={handleInscricoesToggle}
-              disabled={inscricoesLoading}
-            />
-            <span className="text-sm">Aberto</span>
+        </div>
+
+        {/* Status dos Ingressos */}
+        <div className="p-4 bg-card rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">Status dos Ingressos</h3>
+              <p className="text-sm text-muted-foreground">
+                {ingressosAbertos ? 'Os ingressos estão abertos' : 'Os ingressos estão fechados'}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">Fechado</span>
+              <Switch
+                checked={ingressosAbertos}
+                onCheckedChange={handleIngressosToggle}
+                disabled={ingressosLoading}
+              />
+              <span className="text-sm">Aberto</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Status dos Cursos */}
+        <div className="p-4 bg-card rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">Status dos Cursos</h3>
+              <p className="text-sm text-muted-foreground">
+                {cursosAbertos ? 'Os cursos estão abertos' : 'Os cursos estão fechados'}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">Fechado</span>
+              <Switch
+                checked={cursosAbertos}
+                onCheckedChange={handleCursosToggle}
+                disabled={cursosLoading}
+              />
+              <span className="text-sm">Aberto</span>
+            </div>
           </div>
         </div>
       </div>

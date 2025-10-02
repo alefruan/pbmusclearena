@@ -29,7 +29,7 @@ const Ingressos: React.FC = () => {
   const navigate = useNavigate();
   const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
+  const [ingressosAbertos, setIngressosAbertos] = useState(true);
   const [formData, setFormData] = useState<IngressoData>({
     nome: '',
     cpf: '',
@@ -40,26 +40,26 @@ const Ingressos: React.FC = () => {
   });
 
   useEffect(() => {
-    checkInscricoesStatus();
+    checkIngressosStatus();
   }, []);
 
-  const checkInscricoesStatus = async () => {
+  const checkIngressosStatus = async () => {
     try {
       const { data, error } = await supabase
         .from('settings')
         .select('value')
-        .eq('key', 'inscricoes_abertas')
+        .eq('key', 'ingressos_abertos')
         .single();
 
       if (error) {
-        console.warn('Erro ao verificar status das inscrições:', error);
-        setInscricoesAbertas(true);
+        console.warn('Erro ao verificar status dos ingressos:', error);
+        setIngressosAbertos(true);
       } else {
-        setInscricoesAbertas(data?.value === 'true');
+        setIngressosAbertos(data?.value === 'true');
       }
     } catch (error) {
       console.error('Erro inesperado:', error);
-      setInscricoesAbertas(true);
+      setIngressosAbertos(true);
     }
   };
 
@@ -95,10 +95,10 @@ const Ingressos: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!inscricoesAbertas) {
+    if (!ingressosAbertos) {
       toast({
-        title: "Inscrições fechadas",
-        description: "As inscrições para ingressos estão temporariamente fechadas.",
+        title: "Ingressos fechados",
+        description: "Os ingressos estão temporariamente fechados.",
         variant: "destructive"
       });
       setIsLoading(false);
@@ -299,7 +299,7 @@ const Ingressos: React.FC = () => {
     }
   };
 
-  if (!inscricoesAbertas) {
+  if (!ingressosAbertos) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <img
@@ -309,9 +309,9 @@ const Ingressos: React.FC = () => {
         />
         <Card className="shadow-card text-center">
           <CardContent className="p-8">
-            <h1 className="text-2xl font-bold mb-4 text-destructive">Inscrições Temporariamente Fechadas</h1>
+            <h1 className="text-2xl font-bold mb-4 text-destructive">Ingressos Temporariamente Fechados</h1>
             <p className="text-muted-foreground">
-              As inscrições para ingressos estão temporariamente fechadas.
+              Os ingressos estão temporariamente fechados.
               Entre em contato conosco para mais informações.
             </p>
             <Button

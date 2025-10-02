@@ -38,7 +38,7 @@ const Cursos: React.FC = () => {
   const navigate = useNavigate();
   const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
+  const [cursosAbertos, setCursosAbertos] = useState(true);
   const [formData, setFormData] = useState<CursoData>({
     nome: '',
     cpf: '',
@@ -50,26 +50,26 @@ const Cursos: React.FC = () => {
   });
 
   useEffect(() => {
-    checkInscricoesStatus();
+    checkCursosStatus();
   }, []);
 
-  const checkInscricoesStatus = async () => {
+  const checkCursosStatus = async () => {
     try {
       const { data, error } = await supabase
         .from('settings')
         .select('value')
-        .eq('key', 'inscricoes_abertas')
+        .eq('key', 'cursos_abertos')
         .single();
 
       if (error) {
-        console.warn('Erro ao verificar status das inscrições:', error);
-        setInscricoesAbertas(true);
+        console.warn('Erro ao verificar status dos cursos:', error);
+        setCursosAbertos(true);
       } else {
-        setInscricoesAbertas(data?.value === 'true');
+        setCursosAbertos(data?.value === 'true');
       }
     } catch (error) {
       console.error('Erro inesperado:', error);
-      setInscricoesAbertas(true);
+      setCursosAbertos(true);
     }
   };
 
@@ -114,9 +114,9 @@ const Cursos: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!inscricoesAbertas) {
+    if (!cursosAbertos) {
       toast({
-        title: "Inscrições fechadas",
+        title: "Cursos fechados",
         description: "As inscrições para cursos estão temporariamente fechadas.",
         variant: "destructive"
       });
@@ -323,7 +323,7 @@ const Cursos: React.FC = () => {
     }
   };
 
-  if (!inscricoesAbertas) {
+  if (!cursosAbertos) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <img
@@ -333,7 +333,7 @@ const Cursos: React.FC = () => {
         />
         <Card className="shadow-card text-center">
           <CardContent className="p-8">
-            <h1 className="text-2xl font-bold mb-4 text-destructive">Inscrições Temporariamente Fechadas</h1>
+            <h1 className="text-2xl font-bold mb-4 text-destructive">Cursos Temporariamente Fechados</h1>
             <p className="text-muted-foreground">
               As inscrições para cursos estão temporariamente fechadas.
               Entre em contato conosco para mais informações.
