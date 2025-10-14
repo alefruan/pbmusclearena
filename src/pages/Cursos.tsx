@@ -30,6 +30,7 @@ const CURSOS_OPCOES = [
   'Nutrição Esportiva',
   'Treinamento Físico',
   'Capacitação para árbitros',
+  'Poses e Posturas',
   'Todos os cursos'
 ];
 
