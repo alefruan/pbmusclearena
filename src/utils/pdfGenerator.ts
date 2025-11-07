@@ -19,7 +19,7 @@ interface RegistrationData {
   subcategoria: string;
 }
 
-export const generatePDF = async (data: RegistrationData): Promise<void> => {
+const createPDFDocument = (data: RegistrationData): jsPDF => {
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.getWidth();
   const margin = 10;
@@ -458,7 +458,16 @@ export const generatePDF = async (data: RegistrationData): Promise<void> => {
   pdf.text('SUB-CATEGORIAS', margin + 52, yPos + 4);
   pdf.text('CLASSES', margin + 102, yPos + 4);
 
-  // Salvar o PDF
+  return pdf;
+};
+
+export const generatePDF = async (data: RegistrationData): Promise<void> => {
+  const pdf = createPDFDocument(data);
   const fileName = `inscricao_${data.nome.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`;
   pdf.save(fileName);
+};
+
+export const generatePDFBlob = async (data: RegistrationData): Promise<Blob> => {
+  const pdf = createPDFDocument(data);
+  return pdf.output('blob');
 };

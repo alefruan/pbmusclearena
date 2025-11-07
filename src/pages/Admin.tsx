@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { generatePDF } from '@/utils/pdfGenerator';
+import { generateAllPDFsAsZip } from '@/utils/bulkPDFGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, X, FileText, Ticket, GraduationCap, Plus } from 'lucide-react';
+import { Pencil, X, FileText, Ticket, GraduationCap, Plus, Download } from 'lucide-react';
 
 interface RegistrationData {
   id?: number;
@@ -88,6 +89,10 @@ const Admin: React.FC = () => {
   const [ingressosLoading, setIngressosLoading] = useState(false);
   const [cursosAbertos, setCursosAbertos] = useState(true);
   const [cursosLoading, setCursosLoading] = useState(false);
+
+  // Estados para download em massa
+  const [isBulkDownloading, setIsBulkDownloading] = useState(false);
+  const [bulkDownloadProgress, setBulkDownloadProgress] = useState({ current: 0, total: 0 });
 
   // Estados para nova inscrição
   const [isNovaInscricaoModalOpen, setIsNovaInscricaoModalOpen] = useState(false);
@@ -798,6 +803,28 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       curso.cpf.includes(cursoSearchTerm)
   );
 
+  const handleBulkDownload = async () => {
+    if (registrations.length === 0) {
+      alert('Nenhuma inscrição disponível para download.');
+      return;
+    }
+
+    setIsBulkDownloading(true);
+    setBulkDownloadProgress({ current: 0, total: registrations.length });
+
+    try {
+      await generateAllPDFsAsZip(registrations, (current, total) => {
+        setBulkDownloadProgress({ current, total });
+      });
+      alert(`Download concluído! ${registrations.length} PDFs foram baixados em um arquivo ZIP.`);
+    } catch (error) {
+      console.error('Erro no download em massa:', error);
+    } finally {
+      setIsBulkDownloading(false);
+      setBulkDownloadProgress({ current: 0, total: 0 });
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <img
@@ -904,13 +931,25 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       </div>
       <div className="mb-4 flex items-center gap-4">
         {!showIngressos && !showCursos && (
-          <Button
-            onClick={() => setIsNovaInscricaoModalOpen(true)}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Inscrição
-          </Button>
+          <>
+            <Button
+              onClick={() => setIsNovaInscricaoModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Inscrição
+            </Button>
+            <Button
+              onClick={handleBulkDownload}
+              disabled={isBulkDownloading || registrations.length === 0}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {isBulkDownloading
+                ? `Baixando... ${bulkDownloadProgress.current}/${bulkDownloadProgress.total}`
+                : 'Baixar Todos os PDFs (ZIP)'}
+            </Button>
+          </>
         )}
         <Input
           placeholder={
