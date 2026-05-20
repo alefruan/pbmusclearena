@@ -107,7 +107,12 @@ const Index = () => {
             className="w-full h-auto max-w-xs md:max-w-sm mx-auto mb-4 drop-shadow-[0_0_18px_rgba(234,88,12,0.6)]"
           />
 
-          <p className="text-base md:text-lg font-medium tracking-[0.2em] uppercase text-orange-300 mb-8">
+          <div className="inline-block bg-orange-500 text-white text-xs font-black px-4 py-1 rounded-full tracking-widest uppercase mb-4">
+            Edição 2026
+          </div>
+
+          
+          <p className="text-sm md:text-base font-medium tracking-[0.2em] uppercase text-white/50 mb-8">
             Sistema de Inscrição Online
           </p>
 

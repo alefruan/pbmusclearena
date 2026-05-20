@@ -301,154 +301,155 @@ const Ingressos: React.FC = () => {
 
   if (!ingressosAbertos) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <img
-          src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
-          alt="PB Muscle Arena Logo"
-          className="w-full h-auto max-w-xs mx-auto mb-8"
-        />
-        <Card className="shadow-card text-center">
-          <CardContent className="p-8">
-            <h1 className="text-2xl font-bold mb-4 text-destructive">Ingressos Temporariamente Fechados</h1>
-            <p className="text-muted-foreground">
-              Os ingressos estão temporariamente fechados.
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <img
+            src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
+            alt="PB Muscle Arena Logo"
+            className="w-full h-auto max-w-xs mx-auto mb-8"
+          />
+          <div className="border border-yellow-400 rounded-2xl p-8 bg-zinc-900">
+            <h1 className="text-2xl font-black mb-3 text-yellow-400 uppercase tracking-widest">Ingressos Fechados</h1>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+              Os ingressos para o <span className="text-white font-bold">PB MUSCLE ARENA 2026</span> estão temporariamente fechados.
               Entre em contato conosco para mais informações.
             </p>
-            <Button
-              onClick={() => navigate('/')}
-              className="mt-4"
-              variant="outline"
-            >
+            <Button onClick={() => navigate('/')} variant="outline" className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold">
               Voltar ao início
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <img
-        src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
-        alt="PB Muscle Arena Logo"
-        className="w-full h-auto max-w-xs mx-auto mb-8"
-      />
+    <div className="min-h-screen bg-black text-white">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-b from-zinc-900 to-black pt-10 pb-8 px-4 text-center border-b border-zinc-800">
+        <img
+          src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
+          alt="PB Muscle Arena Logo"
+          className="w-full h-auto max-w-xs mx-auto mb-6"
+        />
+        <div className="inline-block bg-yellow-400 text-black text-xs font-black px-4 py-1 rounded-full tracking-widest uppercase mb-4">
+          Edição 2026
+        </div>
+        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight leading-none">
+          PB MUSCLE ARENA
+          <span className="block text-yellow-400">2026</span>
+        </h1>
+        <p className="text-zinc-400 mt-4 text-sm max-w-sm mx-auto">
+          Garanta agora o seu ingresso para o maior evento de fisiculturismo da Paraíba
+        </p>
+      </div>
 
-      <Card className="shadow-card mb-8">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary-glow text-white rounded-t-lg">
-          <CardTitle className="text-2xl font-bold text-center">Cadastro de Ingresso</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <p className="text-center text-muted-foreground mb-6">
-            Preencha os dados abaixo para garantir seu ingresso para o evento PB MUSCLE ARENA
-          </p>
-        </CardContent>
-      </Card>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="shadow-card">
-          <CardHeader className="bg-yellow-400 text-black rounded-t-lg">
-            <CardTitle className="text-xl font-bold">DADOS PESSOAIS</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="nome" className="text-sm font-medium">Nome Completo *</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
-                  className="mt-1"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cpf" className="text-sm font-medium">CPF *</Label>
-                <Input
-                  id="cpf"
-                  value={formData.cpf}
-                  onChange={(e) => handleInputChange('cpf', e.target.value)}
-                  className="mt-1"
-                  placeholder="000.000.000-00"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="telefone" className="text-sm font-medium">Telefone *</Label>
-                <Input
-                  id="telefone"
-                  value={formData.telefone}
-                  onChange={(e) => handleInputChange('telefone', e.target.value)}
-                  className="mt-1"
-                  placeholder="(00) 00000-0000"
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="email" className="text-sm font-medium">E-mail *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="mt-1"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cidade" className="text-sm font-medium">Cidade *</Label>
-                <Input
-                  id="cidade"
-                  value={formData.cidade}
-                  onChange={(e) => handleInputChange('cidade', e.target.value)}
-                  className="mt-1"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="uf" className="text-sm font-medium">UF *</Label>
-                <Select value={formData.uf} onValueChange={(value) => handleInputChange('uf', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Selecione a UF" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UFS_BRASIL.map((uf) => (
-                      <SelectItem key={uf} value={uf}>
-                        {uf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {/* Form */}
+      <div className="max-w-2xl mx-auto px-4 py-10">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Dados Pessoais */}
+          <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900">
+            <div className="bg-yellow-400 px-6 py-4">
+              <h2 className="text-black font-black text-sm uppercase tracking-widest">Dados Pessoais</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="nome" className="text-zinc-400 text-xs font-semibold uppercase tracking-widest">Nome Completo *</Label>
+                  <Input
+                    id="nome"
+                    value={formData.nome}
+                    onChange={(e) => handleInputChange('nome', e.target.value)}
+                    className="mt-2 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:border-yellow-400 focus:ring-yellow-400"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cpf" className="text-zinc-400 text-xs font-semibold uppercase tracking-widest">CPF *</Label>
+                  <Input
+                    id="cpf"
+                    value={formData.cpf}
+                    onChange={(e) => handleInputChange('cpf', e.target.value)}
+                    className="mt-2 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:border-yellow-400"
+                    placeholder="000.000.000-00"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="telefone" className="text-zinc-400 text-xs font-semibold uppercase tracking-widest">Telefone *</Label>
+                  <Input
+                    id="telefone"
+                    value={formData.telefone}
+                    onChange={(e) => handleInputChange('telefone', e.target.value)}
+                    className="mt-2 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:border-yellow-400"
+                    placeholder="(00) 00000-0000"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="email" className="text-zinc-400 text-xs font-semibold uppercase tracking-widest">E-mail *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="mt-2 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:border-yellow-400"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cidade" className="text-zinc-400 text-xs font-semibold uppercase tracking-widest">Cidade *</Label>
+                  <Input
+                    id="cidade"
+                    value={formData.cidade}
+                    onChange={(e) => handleInputChange('cidade', e.target.value)}
+                    className="mt-2 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600 focus:border-yellow-400"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="uf" className="text-zinc-400 text-xs font-semibold uppercase tracking-widest">UF *</Label>
+                  <Select value={formData.uf} onValueChange={(value) => handleInputChange('uf', value)}>
+                    <SelectTrigger className="mt-2 bg-zinc-800 border-zinc-700 text-white focus:border-yellow-400">
+                      <SelectValue placeholder="Selecione a UF" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                      {UFS_BRASIL.map((uf) => (
+                        <SelectItem key={uf} value={uf} className="focus:bg-yellow-400 focus:text-black">
+                          {uf}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* reCAPTCHA v2 */}
-        <Card className="shadow-card">
-          <CardContent className="p-6">
-            <div className="flex justify-center">
-              <ReCAPTCHA
-                ref={(ref) => setRecaptchaRef(ref)}
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                theme="light"
-              />
-            </div>
-          </CardContent>
-        </Card>
+          {/* reCAPTCHA */}
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 flex justify-center">
+            <ReCAPTCHA
+              ref={(ref) => setRecaptchaRef(ref)}
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+              theme="dark"
+            />
+          </div>
 
-        <div className="flex justify-center pt-6">
+          {/* Submit */}
           <Button
             type="submit"
             size="lg"
             disabled={isLoading}
-            className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-accent text-lg px-12 py-3 shadow-elegant disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base uppercase tracking-widest py-6 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Cadastrando..." : "Cadastrar Ingresso"}
+            {isLoading ? "Cadastrando..." : "Garantir Meu Ingresso"}
           </Button>
-        </div>
-      </form>
+
+          <p className="text-center text-zinc-600 text-xs">
+            Ao se cadastrar, você confirma que as informações fornecidas são verdadeiras.
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

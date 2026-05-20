@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerar Banner 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 24px;
+      font-family: Arial, sans-serif;
+    }
+
+    #banner {
+      width: 1200px;
+      height: 628px;
+      background: #111;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Brush stroke / paint splat background */
+    .brush-bg {
+      position: absolute;
+      left: -60px;
+      top: -40px;
+      width: 720px;
+      height: 740px;
+      background: #f0b429;
+      clip-path: polygon(
+        0% 10%, 8% 0%, 30% 5%, 55% 0%, 75% 8%,
+        85% 2%, 100% 15%, 98% 40%, 100% 65%,
+        90% 85%, 75% 100%, 50% 95%, 25% 100%,
+        10% 90%, 0% 70%
+      );
+      opacity: 0.18;
+      transform: rotate(-8deg);
+    }
+
+    .brush-accent {
+      position: absolute;
+      left: 20px;
+      top: 60px;
+      width: 500px;
+      height: 500px;
+      background: #f0b429;
+      clip-path: polygon(
+        5% 0%, 40% 3%, 80% 0%, 100% 10%,
+        95% 45%, 100% 80%, 85% 100%,
+        50% 98%, 15% 100%, 0% 80%, 5% 50%, 0% 20%
+      );
+      opacity: 0.12;
+      transform: rotate(5deg);
+    }
+
+    /* Left content */
+    .left-content {
+      position: relative;
+      z-index: 2;
+      padding: 60px 50px;
+      flex: 0 0 auto;
+      width: 640px;
+    }
+
+    .abertura-text {
+      font-size: 72px;
+      font-weight: 900;
+      font-style: italic;
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 0.9;
+      letter-spacing: -2px;
+      text-shadow: 3px 3px 0px rgba(0,0,0,0.5);
+    }
+
+    .inscricoes-text {
+      font-size: 96px;
+      font-weight: 900;
+      font-style: italic;
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 0.85;
+      letter-spacing: -4px;
+      text-shadow: 3px 3px 0px rgba(0,0,0,0.5);
+    }
+
+    .date-badge {
+      display: inline-block;
+      background: #f0b429;
+      color: #111;
+      font-size: 26px;
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      padding: 10px 30px;
+      border-radius: 40px;
+      margin-top: 22px;
+      letter-spacing: 1px;
+    }
+
+    .year-text {
+      display: block;
+      font-size: 32px;
+      font-weight: 900;
+      font-style: italic;
+      color: #f0b429;
+      letter-spacing: 4px;
+      margin-top: 10px;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    }
+
+    .logo-area {
+      margin-top: 30px;
+    }
+
+    .logo-text {
+      font-size: 38px;
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+
+    .logo-pb {
+      color: #f0b429;
+    }
+
+    .logo-muscle {
+      color: #fff;
+    }
+
+    .logo-arena {
+      color: #fff;
+    }
+
+    /* Right mockup */
+    .right-mockup {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-right: 40px;
+    }
+
+    .mockup-card {
+      background: #fff;
+      border-radius: 12px;
+      width: 320px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transform: perspective(800px) rotateY(-8deg) rotateX(2deg);
+    }
+
+    .mockup-header {
+      background: #f0b429;
+      border-radius: 6px 6px 0 0;
+      padding: 10px 16px;
+      margin: -20px -20px 16px;
+      text-align: center;
+    }
+
+    .mockup-header h3 {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #111;
+      letter-spacing: 1px;
+    }
+
+    .mockup-header p {
+      font-size: 9px;
+      color: #333;
+      margin-top: 2px;
+    }
+
+    .mockup-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      text-align: center;
+      margin-bottom: 14px;
+      border-bottom: 2px solid #f0b429;
+      padding-bottom: 8px;
+    }
+
+    .mockup-section {
+      margin-bottom: 10px;
+    }
+
+    .mockup-label {
+      font-size: 7px;
+      font-weight: 700;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .mockup-field {
+      height: 18px;
+      background: #f5f5f5;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+      margin-bottom: 5px;
+    }
+
+    .mockup-fields-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mockup-fields-row .mockup-field {
+      flex: 1;
+    }
+
+    .mockup-btn {
+      background: #f0b429;
+      color: #111;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      border-radius: 4px;
+      padding: 8px;
+      text-align: center;
+      margin-top: 12px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div id="banner">
+    <div class="brush-bg"></div>
+    <div class="brush-accent"></div>
+
+    <div class="left-content">
+      <div class="abertura-text">ABERTURA DE</div>
+      <div class="inscricoes-text">INSCRIÇÕES</div>
+      <div class="date-badge">22 DE SETEMBRO</div>
+      <span class="year-text">2026</span>
+      <div class="logo-area">
+        <span class="logo-text">
+          <span class="logo-pb">PB</span><span class="logo-muscle">MUSCLE</span><span class="logo-arena">ARENA</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="right-mockup">
+      <div class="mockup-card">
+        <div class="mockup-header">
+          <h3>PBMUSCLEARENA</h3>
+          <p>Sistema de Inscrição Online</p>
+        </div>
+        <div class="mockup-title">Inscreva-se no Evento de Fisiculturismo</div>
+        <div class="mockup-label">INSCRIÇÃO</div>
+        <div class="mockup-section">
+          <div class="mockup-label">Nome completo</div>
+          <div class="mockup-field"></div>
+        </div>
+        <div class="mockup-fields-row">
+          <div class="mockup-section" style="flex:1">
+            <div class="mockup-label">CPF</div>
+            <div class="mockup-field"></div>
+          </div>
+          <div class="mockup-section" style="flex:1">
+            <div class="mockup-label">RG</div>
+            <div class="mockup-field"></div>
+          </div>
+        </div>
+        <div class="mockup-section">
+          <div class="mockup-label">Endereço</div>
+          <div class="mockup-field"></div>
+        </div>
+        <div class="mockup-fields-row">
+          <div class="mockup-section" style="flex:1">
+            <div class="mockup-label">Categoria</div>
+            <div class="mockup-field"></div>
+          </div>
+          <div class="mockup-section" style="flex:1">
+            <div class="mockup-label">Peso</div>
+            <div class="mockup-field"></div>
+          </div>
+        </div>
+        <div class="mockup-btn">Gerar Inscrição PDF</div>
+      </div>
+    </div>
+  </div>
+
+  <button onclick="baixarPNG()" style="
+    background: #f0b429;
+    color: #111;
+    border: none;
+    padding: 14px 40px;
+    font-size: 18px;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  ">
+    Baixar PNG
+  </button>
+
+  <script>
+    async function baixarPNG() {
+      const banner = document.getElementById('banner');
+      const canvas = await html2canvas(banner, {
+        width: 1200,
+        height: 628,
+        scale: 2,
+        backgroundColor: '#111111',
+        useCORS: true
+      });
+      const link = document.createElement('a');
+      link.download = 'inscricao-2026.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
