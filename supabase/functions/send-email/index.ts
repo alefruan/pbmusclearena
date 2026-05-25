@@ -30,57 +30,120 @@ const corsHeaders = {
 function createEmailTemplate(data: RegistrationData): string {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="pt-BR">
     <head>
         <meta charset="utf-8">
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
-            .header { text-align: center; color: #dc5e28; border-bottom: 3px solid #dc5e28; padding-bottom: 20px; margin-bottom: 20px; }
-            .content { line-height: 1.6; }
-            .info-section { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
-            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
-        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirmação de Inscrição - PB MUSCLE ARENA</title>
     </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>PB MUSCLE ARENA</h1>
-                <h2>Confirmação de Inscrição</h2>
-            </div>
+    <body style="margin:0;padding:0;background-color:#0f0f0f;font-family:Arial,Helvetica,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f0f0f;padding:32px 16px;">
+            <tr><td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#1a1a1a;border-radius:12px;overflow:hidden;border:1px solid #2a2a2a;">
 
-            <div class="content">
-                <p>Olá <strong>${data.nome}</strong>,</p>
+                    <!-- Header laranja -->
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#dc5e28 0%,#b84a1e 100%);padding:36px 32px;text-align:center;">
+                            <div style="font-size:11px;font-weight:800;letter-spacing:4px;color:rgba(255,255,255,0.7);text-transform:uppercase;margin-bottom:10px;">Edição 2026</div>
+                            <div style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:2px;text-transform:uppercase;line-height:1.2;">PB MUSCLE ARENA</div>
+                            <div style="width:50px;height:3px;background:rgba(255,255,255,0.4);margin:14px auto;border-radius:2px;"></div>
+                            <div style="font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);letter-spacing:1px;text-transform:uppercase;">Confirmação de Inscrição</div>
+                        </td>
+                    </tr>
 
-                <p>Sua inscrição para o evento <strong>PB MUSCLE ARENA</strong> foi realizada com sucesso!</p>
+                    <!-- Linha de destaque -->
+                    <tr><td style="height:4px;background:linear-gradient(90deg,#dc5e28,#ff8c5a,#dc5e28);"></td></tr>
 
-                <div class="info-section">
-                    <h3>Dados da Inscrição:</h3>
-                    <p><strong>Nome:</strong> ${data.nome}</p>
-                    <p><strong>CPF:</strong> ${data.cpf}</p>
-                    <p><strong>Email:</strong> ${data.email}</p>
-                    <p><strong>Telefone:</strong> ${data.telefone}</p>
-                </div>
+                    <!-- Corpo -->
+                    <tr>
+                        <td style="padding:36px 32px;">
 
-                <p>Em anexo você encontrará o PDF com sua ficha de inscrição oficial. Guarde este documento, pois será necessário apresentá-lo no dia do evento.</p>
+                            <p style="margin:0 0 20px;font-size:16px;color:#e0e0e0;line-height:1.6;">
+                                Olá, <strong style="color:#ffffff;">${data.nome}</strong>!
+                            </p>
+                            <p style="margin:0 0 28px;font-size:15px;color:#aaaaaa;line-height:1.7;">
+                                Sua inscrição para o <strong style="color:#dc5e28;">PB MUSCLE ARENA 2026</strong> foi realizada com sucesso! Em anexo você encontrará o PDF com sua ficha oficial de inscrição.
+                            </p>
 
-                <p><strong>Próximos Passos:</strong></p>
-                <ul>
-                    <li>Apresente-se no local do evento com o documento em anexo</li>
-                    <li>Siga as orientações do regulamento do evento</li>
-                    <li>Chegue com antecedência para a pesagem e verificações</li>
-                </ul>
+                            <!-- Card dados -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#242424;border-radius:10px;border:1px solid #333;margin-bottom:24px;">
+                                <tr><td style="padding:18px 20px 10px;border-bottom:1px solid #333;">
+                                    <span style="font-size:11px;font-weight:800;letter-spacing:2px;color:#dc5e28;text-transform:uppercase;">Dados do Atleta</span>
+                                </td></tr>
+                                <tr><td style="padding:16px 20px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2e2e2e;font-size:12px;color:#666;width:40%;text-transform:uppercase;letter-spacing:1px;">Nome</td>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2e2e2e;font-size:14px;color:#e0e0e0;font-weight:600;">${data.nome}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2e2e2e;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;">CPF</td>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2e2e2e;font-size:14px;color:#e0e0e0;">${data.cpf}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2e2e2e;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;">E-mail</td>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2e2e2e;font-size:14px;color:#e0e0e0;">${data.email}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:7px 0;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;">Telefone</td>
+                                            <td style="padding:7px 0;font-size:14px;color:#e0e0e0;">${data.telefone}</td>
+                                        </tr>
+                                    </table>
+                                </td></tr>
+                            </table>
 
-                <p>Em caso de dúvidas, entre em contato conosco através do email inscricao@pbmusclearena.com</p>
+                            <!-- Card evento -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1e2a1e;border-radius:10px;border:1px solid #2d3d2d;margin-bottom:24px;">
+                                <tr><td style="padding:18px 20px 10px;border-bottom:1px solid #2d3d2d;">
+                                    <span style="font-size:11px;font-weight:800;letter-spacing:2px;color:#4caf50;text-transform:uppercase;">Detalhes do Evento</span>
+                                </td></tr>
+                                <tr><td style="padding:16px 20px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2d3d2d;font-size:12px;color:#666;width:40%;text-transform:uppercase;letter-spacing:1px;">Data</td>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2d3d2d;font-size:14px;color:#e0e0e0;font-weight:600;">18 e 19 de Julho de 2026</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2d3d2d;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;">Local</td>
+                                            <td style="padding:7px 0;border-bottom:1px solid #2d3d2d;font-size:14px;color:#e0e0e0;">Teatro Pedra do Reino</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:7px 0;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;">Cidade</td>
+                                            <td style="padding:7px 0;font-size:14px;color:#e0e0e0;">João Pessoa — PB</td>
+                                        </tr>
+                                    </table>
+                                </td></tr>
+                            </table>
 
-                <p>Boa sorte na competição!</p>
-            </div>
+                            <!-- Próximos passos -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#242424;border-radius:10px;border:1px solid #333;margin-bottom:28px;">
+                                <tr><td style="padding:18px 20px 10px;border-bottom:1px solid #333;">
+                                    <span style="font-size:11px;font-weight:800;letter-spacing:2px;color:#dc5e28;text-transform:uppercase;">Próximos Passos</span>
+                                </td></tr>
+                                <tr><td style="padding:16px 20px;">
+                                    <p style="margin:0 0 8px;font-size:14px;color:#cccccc;padding-left:16px;position:relative;">&#8250;&nbsp; Imprima ou salve o PDF anexo — ele será exigido no dia do evento</p>
+                                    <p style="margin:0 0 8px;font-size:14px;color:#cccccc;padding-left:16px;">&#8250;&nbsp; Leia o regulamento completo disponível no site</p>
+                                    <p style="margin:0;font-size:14px;color:#cccccc;padding-left:16px;">&#8250;&nbsp; Chegue com antecedência para pesagem e credenciamento</p>
+                                </td></tr>
+                            </table>
 
-            <div class="footer">
-                <p><strong>PB MUSCLE ARENA</strong><br>
-                Email: inscricao@pbmusclearena.com</p>
-            </div>
-        </div>
+                            <p style="margin:0 0 4px;font-size:14px;color:#888;text-align:center;">Dúvidas? Fale conosco:</p>
+                            <p style="margin:0;font-size:14px;color:#dc5e28;text-align:center;font-weight:600;">inscricao@pbmusclearena.com</p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color:#111;padding:24px 32px;text-align:center;border-top:1px solid #222;">
+                            <div style="font-size:13px;font-weight:800;letter-spacing:2px;color:#dc5e28;text-transform:uppercase;margin-bottom:6px;">PB MUSCLE ARENA</div>
+                            <div style="font-size:12px;color:#555;">© 2026 — Todos os direitos reservados</div>
+                        </td>
+                    </tr>
+
+                </table>
+            </td></tr>
+        </table>
     </body>
     </html>
   `;

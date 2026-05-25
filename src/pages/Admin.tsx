@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, X, FileText, Ticket, GraduationCap, Plus, Download } from 'lucide-react';
+import { Pencil, X, FileText, Ticket, GraduationCap, Plus, Download, FileDown } from 'lucide-react';
 
 interface RegistrationData {
   id?: number;
@@ -126,6 +126,14 @@ const Admin: React.FC = () => {
   const [isCursoAlertOpen, setIsCursoAlertOpen] = useState(false);
   const [cursoSearchTerm, setCursoSearchTerm] = useState('');
   const [showCursos, setShowCursos] = useState(false);
+
+  // Estados para seleção em massa
+  const [selectedRegistrations, setSelectedRegistrations] = useState<Set<number>>(new Set());
+  const [selectedIngressos, setSelectedIngressos] = useState<Set<number>>(new Set());
+  const [selectedCursos, setSelectedCursos] = useState<Set<number>>(new Set());
+  const [isBulkDeleteAlertOpen, setIsBulkDeleteAlertOpen] = useState(false);
+  const [bulkDeleteTarget, setBulkDeleteTarget] = useState<'registrations' | 'ingressos' | 'cursos' | null>(null);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const navigate = useNavigate();
 
@@ -803,6 +811,127 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       curso.cpf.includes(cursoSearchTerm)
   );
 
+  const handleBulkDeleteConfirm = async () => {
+    if (!bulkDeleteTarget) return;
+    setIsBulkDeleting(true);
+    try {
+      if (bulkDeleteTarget === 'registrations') {
+        const ids = Array.from(selectedRegistrations);
+        const { error } = await supabase.from('registrations').delete().in('id', ids);
+        if (error) { console.error(error); alert('Erro ao excluir inscrições: ' + error.message); return; }
+        setSelectedRegistrations(new Set());
+        await fetchRegistrations();
+      } else if (bulkDeleteTarget === 'ingressos') {
+        const ids = Array.from(selectedIngressos);
+        const { error } = await supabase.from('ingressos').delete().in('id', ids);
+        if (error) { console.error(error); alert('Erro ao excluir ingressos: ' + error.message); return; }
+        setSelectedIngressos(new Set());
+        await fetchIngressos();
+      } else if (bulkDeleteTarget === 'cursos') {
+        const ids = Array.from(selectedCursos);
+        const { error } = await supabase.from('cursos').delete().in('id', ids);
+        if (error) { console.error(error); alert('Erro ao excluir cursos: ' + error.message); return; }
+        setSelectedCursos(new Set());
+        await fetchCursos();
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erro inesperado ao excluir registros.');
+    } finally {
+      setIsBulkDeleting(false);
+      setIsBulkDeleteAlertOpen(false);
+      setBulkDeleteTarget(null);
+    }
+  };
+
+  const openBulkDeleteAlert = (target: 'registrations' | 'ingressos' | 'cursos') => {
+    setBulkDeleteTarget(target);
+    setIsBulkDeleteAlertOpen(true);
+  };
+
+  const toggleSelectRegistration = (id: number) => {
+    setSelectedRegistrations(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllRegistrations = () => {
+    if (selectedRegistrations.size === filteredRegistrations.length) {
+      setSelectedRegistrations(new Set());
+    } else {
+      setSelectedRegistrations(new Set(filteredRegistrations.map(r => r.id!)));
+    }
+  };
+
+  const toggleSelectIngresso = (id: number) => {
+    setSelectedIngressos(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllIngressos = () => {
+    if (selectedIngressos.size === filteredIngressos.length) {
+      setSelectedIngressos(new Set());
+    } else {
+      setSelectedIngressos(new Set(filteredIngressos.map(i => i.id!)));
+    }
+  };
+
+  const toggleSelectCurso = (id: number) => {
+    setSelectedCursos(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllCursos = () => {
+    if (selectedCursos.size === filteredCursos.length) {
+      setSelectedCursos(new Set());
+    } else {
+      setSelectedCursos(new Set(filteredCursos.map(c => c.id!)));
+    }
+  };
+
+  const downloadCSV = (data: object[], filename: string) => {
+    if (data.length === 0) {
+      alert('Nenhum dado disponível para download.');
+      return;
+    }
+    const headers = Object.keys(data[0]);
+    const rows = data.map((row) =>
+      headers.map((h) => {
+        const val = (row as Record<string, unknown>)[h];
+        const str = val === null || val === undefined ? '' : String(val);
+        return `"${str.replace(/"/g, '""')}"`;
+      }).join(',')
+    );
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadInscricoesCSV = () => {
+    downloadCSV(registrations, `inscricoes_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
+  const handleDownloadIngressosCSV = () => {
+    downloadCSV(ingressos, `ingressos_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
+  const handleDownloadCursosCSV = () => {
+    downloadCSV(cursos, `cursos_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
   const handleBulkDownload = async () => {
     if (registrations.length === 0) {
       alert('Nenhuma inscrição disponível para download.');
@@ -949,6 +1078,68 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
                 ? `Baixando... ${bulkDownloadProgress.current}/${bulkDownloadProgress.total}`
                 : 'Baixar Todos os PDFs (ZIP)'}
             </Button>
+            <Button
+              onClick={handleDownloadInscricoesCSV}
+              disabled={registrations.length === 0}
+              variant="outline"
+              className="border-gray-400 text-gray-700 hover:bg-gray-100"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar Inscrições CSV
+            </Button>
+            {selectedRegistrations.size > 0 && (
+              <Button
+                onClick={() => openBulkDeleteAlert('registrations')}
+                variant="destructive"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Excluir Selecionados ({selectedRegistrations.size})
+              </Button>
+            )}
+          </>
+        )}
+        {showIngressos && (
+          <>
+            <Button
+              onClick={handleDownloadIngressosCSV}
+              disabled={ingressos.length === 0}
+              variant="outline"
+              className="border-blue-400 text-blue-700 hover:bg-blue-50"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar Ingressos CSV
+            </Button>
+            {selectedIngressos.size > 0 && (
+              <Button
+                onClick={() => openBulkDeleteAlert('ingressos')}
+                variant="destructive"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Excluir Selecionados ({selectedIngressos.size})
+              </Button>
+            )}
+          </>
+        )}
+        {showCursos && (
+          <>
+            <Button
+              onClick={handleDownloadCursosCSV}
+              disabled={cursos.length === 0}
+              variant="outline"
+              className="border-green-400 text-green-700 hover:bg-green-50"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar Cursos CSV
+            </Button>
+            {selectedCursos.size > 0 && (
+              <Button
+                onClick={() => openBulkDeleteAlert('cursos')}
+                variant="destructive"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Excluir Selecionados ({selectedCursos.size})
+              </Button>
+            )}
           </>
         )}
         <Input
@@ -1001,6 +1192,12 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           <table className="min-w-full bg-white">
             <thead>
               <tr>
+                <th className="py-2 px-4 border-b w-10">
+                  <Checkbox
+                    checked={filteredRegistrations.length > 0 && selectedRegistrations.size === filteredRegistrations.length}
+                    onCheckedChange={toggleSelectAllRegistrations}
+                  />
+                </th>
                 <th className="py-2 px-4 border-b">Nome</th>
                 <th className="py-2 px-4 border-b">CPF</th>
                 <th className="py-2 px-4 border-b">Telefone</th>
@@ -1010,7 +1207,13 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
             </thead>
             <tbody>
               {filteredRegistrations.map((registration) => (
-                <tr key={registration.id}>
+                <tr key={registration.id} className={selectedRegistrations.has(registration.id!) ? 'bg-red-50' : ''}>
+                  <td className="py-2 px-4 border-b">
+                    <Checkbox
+                      checked={selectedRegistrations.has(registration.id!)}
+                      onCheckedChange={() => toggleSelectRegistration(registration.id!)}
+                    />
+                  </td>
                   <td className="py-2 px-4 border-b">{registration.nome}</td>
                   <td className="py-2 px-4 border-b">{registration.cpf}</td>
                   <td className="py-2 px-4 border-b">{registration.telefone}</td>
@@ -1037,6 +1240,12 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           <table className="min-w-full bg-white">
             <thead>
               <tr>
+                <th className="py-2 px-4 border-b w-10">
+                  <Checkbox
+                    checked={filteredIngressos.length > 0 && selectedIngressos.size === filteredIngressos.length}
+                    onCheckedChange={toggleSelectAllIngressos}
+                  />
+                </th>
                 <th className="py-2 px-4 border-b">ID</th>
                 <th className="py-2 px-4 border-b">Nome</th>
                 <th className="py-2 px-4 border-b">CPF</th>
@@ -1048,7 +1257,13 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
             </thead>
             <tbody>
               {filteredIngressos.map((ingresso) => (
-                <tr key={ingresso.id}>
+                <tr key={ingresso.id} className={selectedIngressos.has(ingresso.id!) ? 'bg-red-50' : ''}>
+                  <td className="py-2 px-4 border-b">
+                    <Checkbox
+                      checked={selectedIngressos.has(ingresso.id!)}
+                      onCheckedChange={() => toggleSelectIngresso(ingresso.id!)}
+                    />
+                  </td>
                   <td className="py-2 px-4 border-b">#{String(ingresso.id).padStart(6, '0')}</td>
                   <td className="py-2 px-4 border-b">{ingresso.nome}</td>
                   <td className="py-2 px-4 border-b">{ingresso.cpf}</td>
@@ -1076,6 +1291,12 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           <table className="min-w-full bg-white">
             <thead>
               <tr>
+                <th className="py-2 px-4 border-b w-10">
+                  <Checkbox
+                    checked={filteredCursos.length > 0 && selectedCursos.size === filteredCursos.length}
+                    onCheckedChange={toggleSelectAllCursos}
+                  />
+                </th>
                 <th className="py-2 px-4 border-b">ID</th>
                 <th className="py-2 px-4 border-b">Nome</th>
                 <th className="py-2 px-4 border-b">CPF</th>
@@ -1088,7 +1309,13 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
             </thead>
             <tbody>
               {filteredCursos.map((curso) => (
-                <tr key={curso.id}>
+                <tr key={curso.id} className={selectedCursos.has(curso.id!) ? 'bg-red-50' : ''}>
+                  <td className="py-2 px-4 border-b">
+                    <Checkbox
+                      checked={selectedCursos.has(curso.id!)}
+                      onCheckedChange={() => toggleSelectCurso(curso.id!)}
+                    />
+                  </td>
                   <td className="py-2 px-4 border-b">#{String(curso.id).padStart(6, '0')}</td>
                   <td className="py-2 px-4 border-b">{curso.nome}</td>
                   <td className="py-2 px-4 border-b">{curso.cpf}</td>
@@ -1405,6 +1632,29 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de confirmação para exclusão em massa */}
+      <AlertDialog open={isBulkDeleteAlertOpen} onOpenChange={setIsBulkDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir registros selecionados?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. Serão excluídos permanentemente{' '}
+              <strong>
+                {bulkDeleteTarget === 'registrations' && `${selectedRegistrations.size} inscrição(ões)`}
+                {bulkDeleteTarget === 'ingressos' && `${selectedIngressos.size} ingresso(s)`}
+                {bulkDeleteTarget === 'cursos' && `${selectedCursos.size} curso(s)`}
+              </strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDeleteConfirm} disabled={isBulkDeleting}>
+              {isBulkDeleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
