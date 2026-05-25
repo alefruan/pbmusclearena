@@ -391,7 +391,7 @@ const createPDFDocument = (data: RegistrationData): jsPDF => {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
   pdf.rect(margin, yPos, pageWidth - 2 * margin, 6);
-  pdf.text('Local: ________________, ______ de _______________ de 2025', margin + 2, yPos + 4);
+  pdf.text('Local: ________________, ______ de _______________ de 2026', margin + 2, yPos + 4);
 
   yPos += 6;
 

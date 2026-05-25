@@ -354,7 +354,7 @@ export async function generatePDFBuffer(data: RegistrationData): Promise<Uint8Ar
 
   // Local e data
   drawRect(margin, yPos, width - 2 * margin, 17);
-  drawText('Local: ________________, ______ de _______________ de 2025', margin + 5, yPos - 12, 10);
+  drawText('Local: ________________, ______ de _______________ de 2026', margin + 5, yPos - 12, 10);
   yPos -= 17;
 
   // Linha de assinaturas
