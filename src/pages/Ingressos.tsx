@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
+import { computeIsOpen } from '@/lib/scheduleUtils';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useNavigate } from 'react-router-dom';
 
@@ -45,17 +46,20 @@ const Ingressos: React.FC = () => {
 
   const checkIngressosStatus = async () => {
     try {
+      const keys = ['ingressos_abertos', 'ingressos_open_at', 'ingressos_close_at'];
       const { data, error } = await supabase
         .from('settings')
-        .select('value')
-        .eq('key', 'ingressos_abertos')
-        .single();
+        .select('key,value')
+        .in('key', keys);
 
       if (error) {
         console.warn('Erro ao verificar status dos ingressos:', error);
         setIngressosAbertos(true);
       } else {
-        setIngressosAbertos(data?.value === 'true');
+        const map = Object.fromEntries((data ?? []).map((r: { key: string; value: string }) => [r.key, r.value]));
+        const manual = map['ingressos_abertos'] === 'true';
+        const isOpen = computeIsOpen(manual, map['ingressos_open_at'], map['ingressos_close_at']);
+        setIngressosAbertos(isOpen);
       }
     } catch (error) {
       console.error('Erro inesperado:', error);

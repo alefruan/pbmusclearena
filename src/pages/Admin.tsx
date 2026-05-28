@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { utcToBrazilInput, brazilInputToUtc, formatBrazilDateTime } from '@/lib/scheduleUtils';
 import { supabase } from '@/lib/supabaseClient';
 import { generatePDF } from '@/utils/pdfGenerator';
 import { generateAllPDFsAsZip } from '@/utils/bulkPDFGenerator';
@@ -127,6 +128,13 @@ const Admin: React.FC = () => {
   const [cursoSearchTerm, setCursoSearchTerm] = useState('');
   const [showCursos, setShowCursos] = useState(false);
 
+  // Estados para agendamento
+  const [inscricoesOpenAt, setInscricoesOpenAt] = useState('');
+  const [inscricoesCloseAt, setInscricoesCloseAt] = useState('');
+  const [ingressosOpenAt, setIngressosOpenAt] = useState('');
+  const [ingressosCloseAt, setIngressosCloseAt] = useState('');
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+
   // Estados para seleção em massa
   const [selectedRegistrations, setSelectedRegistrations] = useState<Set<number>>(new Set());
   const [selectedIngressos, setSelectedIngressos] = useState<Set<number>>(new Set());
@@ -216,8 +224,9 @@ const Admin: React.FC = () => {
       await fetchInscricoesStatus();
       await fetchIngressosStatus();
       await fetchCursosStatus();
-      await fetchIngressos(); // Sempre carregar ingressos para mostrar o contador
-      await fetchCursos(); // Sempre carregar cursos para mostrar o contador
+      await fetchIngressos();
+      await fetchCursos();
+      await fetchSchedules();
     };
     loadData();
   }, []);
@@ -811,6 +820,57 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       curso.cpf.includes(cursoSearchTerm)
   );
 
+  const fetchSchedules = async () => {
+    const keys = ['inscricoes_open_at', 'inscricoes_close_at', 'ingressos_open_at', 'ingressos_close_at'];
+    const { data } = await supabase.from('settings').select('key,value').in('key', keys);
+    if (!data) return;
+    const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
+    setInscricoesOpenAt(utcToBrazilInput(map['inscricoes_open_at']));
+    setInscricoesCloseAt(utcToBrazilInput(map['inscricoes_close_at']));
+    setIngressosOpenAt(utcToBrazilInput(map['ingressos_open_at']));
+    setIngressosCloseAt(utcToBrazilInput(map['ingressos_close_at']));
+  };
+
+  const saveSetting = async (key: string, value: string) => {
+    await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
+  };
+
+  const handleSaveSchedule = async (type: 'inscricoes' | 'ingressos') => {
+    setScheduleLoading(true);
+    try {
+      if (type === 'inscricoes') {
+        await saveSetting('inscricoes_open_at', inscricoesOpenAt ? brazilInputToUtc(inscricoesOpenAt) : '');
+        await saveSetting('inscricoes_close_at', inscricoesCloseAt ? brazilInputToUtc(inscricoesCloseAt) : '');
+      } else {
+        await saveSetting('ingressos_open_at', ingressosOpenAt ? brazilInputToUtc(ingressosOpenAt) : '');
+        await saveSetting('ingressos_close_at', ingressosCloseAt ? brazilInputToUtc(ingressosCloseAt) : '');
+      }
+      alert('Agendamento salvo com sucesso!');
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
+  const handleClearSchedule = async (type: 'inscricoes' | 'ingressos') => {
+    setScheduleLoading(true);
+    try {
+      if (type === 'inscricoes') {
+        await saveSetting('inscricoes_open_at', '');
+        await saveSetting('inscricoes_close_at', '');
+        setInscricoesOpenAt('');
+        setInscricoesCloseAt('');
+      } else {
+        await saveSetting('ingressos_open_at', '');
+        await saveSetting('ingressos_close_at', '');
+        setIngressosOpenAt('');
+        setIngressosCloseAt('');
+      }
+      alert('Agendamento removido. O toggle manual voltará a controlar.');
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
   const handleBulkDeleteConfirm = async () => {
     if (!bulkDeleteTarget) return;
     setIsBulkDeleting(true);
@@ -1055,6 +1115,100 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
               />
               <span className="text-sm">Aberto</span>
             </div>
+          </div>
+        </div>
+
+        {/* Agendamento de Inscrições */}
+        <div className="p-4 bg-card rounded-lg border border-orange-200">
+          <div className="mb-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <span>⏰</span> Agendamento das Inscrições
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Quando definido, abre/fecha automaticamente. O toggle manual é ignorado enquanto houver agendamento.
+              Todos os horários são em <strong>Horário de Brasília (UTC-3)</strong>.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+            <div>
+              <label className="text-sm font-medium block mb-1">Abertura automática</label>
+              <input
+                type="datetime-local"
+                value={inscricoesOpenAt}
+                onChange={e => setInscricoesOpenAt(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+              {inscricoesOpenAt && (
+                <p className="text-xs text-muted-foreground mt-1">{formatBrazilDateTime(brazilInputToUtc(inscricoesOpenAt))}</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">Fechamento automático</label>
+              <input
+                type="datetime-local"
+                value={inscricoesCloseAt}
+                onChange={e => setInscricoesCloseAt(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+              {inscricoesCloseAt && (
+                <p className="text-xs text-muted-foreground mt-1">{formatBrazilDateTime(brazilInputToUtc(inscricoesCloseAt))}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => handleSaveSchedule('inscricoes')} disabled={scheduleLoading} className="bg-orange-600 hover:bg-orange-700">
+              Salvar Agendamento
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleClearSchedule('inscricoes')} disabled={scheduleLoading}>
+              Limpar Agendamento
+            </Button>
+          </div>
+        </div>
+
+        {/* Agendamento de Ingressos */}
+        <div className="p-4 bg-card rounded-lg border border-blue-200">
+          <div className="mb-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <span>⏰</span> Agendamento dos Ingressos
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Quando definido, abre/fecha automaticamente. O toggle manual é ignorado enquanto houver agendamento.
+              Todos os horários são em <strong>Horário de Brasília (UTC-3)</strong>.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+            <div>
+              <label className="text-sm font-medium block mb-1">Abertura automática</label>
+              <input
+                type="datetime-local"
+                value={ingressosOpenAt}
+                onChange={e => setIngressosOpenAt(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+              {ingressosOpenAt && (
+                <p className="text-xs text-muted-foreground mt-1">{formatBrazilDateTime(brazilInputToUtc(ingressosOpenAt))}</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">Fechamento automático</label>
+              <input
+                type="datetime-local"
+                value={ingressosCloseAt}
+                onChange={e => setIngressosCloseAt(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+              {ingressosCloseAt && (
+                <p className="text-xs text-muted-foreground mt-1">{formatBrazilDateTime(brazilInputToUtc(ingressosCloseAt))}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => handleSaveSchedule('ingressos')} disabled={scheduleLoading} className="bg-blue-600 hover:bg-blue-700">
+              Salvar Agendamento
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleClearSchedule('ingressos')} disabled={scheduleLoading}>
+              Limpar Agendamento
+            </Button>
           </div>
         </div>
       </div>

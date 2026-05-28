@@ -3,6 +3,7 @@ import heroImage from '@/assets/hero-bodybuilding.jpg';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { computeIsOpen } from '@/lib/scheduleUtils';
 
 const TARGET_DATE = new Date('2026-05-29T00:00:00');
 
@@ -55,17 +56,20 @@ const Index = () => {
 
   const fetchInscricoesStatus = async () => {
     try {
+      const keys = ['inscricoes_abertas', 'inscricoes_open_at', 'inscricoes_close_at'];
       const { data, error } = await supabase
         .from('settings')
-        .select('value')
-        .eq('key', 'inscricoes_abertas')
-        .single();
+        .select('key,value')
+        .in('key', keys);
 
       if (error) {
         console.error('Error fetching inscricoes status:', error);
         setInscricoesAbertas(true);
       } else {
-        setInscricoesAbertas(data?.value === 'true');
+        const map = Object.fromEntries((data ?? []).map((r: { key: string; value: string }) => [r.key, r.value]));
+        const manual = map['inscricoes_abertas'] === 'true';
+        const isOpen = computeIsOpen(manual, map['inscricoes_open_at'], map['inscricoes_close_at']);
+        setInscricoesAbertas(isOpen);
       }
     } catch (error) {
       console.error('Unexpected error:', error);
