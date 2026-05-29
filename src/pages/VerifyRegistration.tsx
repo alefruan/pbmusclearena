@@ -68,9 +68,7 @@ export const VerifyRegistration = () => {
 
     try {
       const { data: registrations, error } = await supabase
-        .from('registrations')
-        .select('id, nome, cpf, email, telefone, cidade, uf')
-        .eq('cpf', numericCPF);
+        .rpc('verify_registration', { p_cpf: numericCPF });
 
       if (error) {
         toast({

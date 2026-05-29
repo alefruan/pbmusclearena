@@ -193,31 +193,6 @@ const Ingressos: React.FC = () => {
       return;
     }
 
-    // Verificação de CPF duplicado
-    try {
-      const cleanCPF = formData.cpf.replace(/\D/g, '');
-
-      const { data: existingIngressos, error: searchError } = await supabase
-        .from('ingressos')
-        .select('id, nome')
-        .eq('cpf', cleanCPF);
-
-      if (searchError && !searchError.message.includes('relation "public.ingressos" does not exist')) {
-        console.error('Erro ao verificar CPF:', searchError);
-      } else if (existingIngressos && existingIngressos.length > 0) {
-        const existingIngresso = existingIngressos[0];
-        toast({
-          title: "CPF já cadastrado",
-          description: `Já existe um ingresso para este CPF em nome de ${existingIngresso.nome}.`,
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-    } catch (cpfCheckError) {
-      console.warn('Erro na verificação de CPF:', cpfCheckError);
-    }
-
     try {
       // Remove máscaras dos campos antes de salvar
       const cleanedData = {
@@ -234,7 +209,13 @@ const Ingressos: React.FC = () => {
       if (error) {
         console.error('Database error:', error);
 
-        if (error.message.includes('relation "public.ingressos" does not exist')) {
+        if (error.code === '23505') {
+          toast({
+            title: "CPF já cadastrado",
+            description: "Já existe um ingresso cadastrado com este CPF.",
+            variant: "destructive"
+          });
+        } else if (error.message.includes('relation "public.ingressos" does not exist')) {
           toast({
             title: "Banco não configurado",
             description: "Tabela de ingressos não encontrada. Execute o script database-setup.sql no Supabase primeiro.",

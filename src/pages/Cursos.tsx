@@ -209,31 +209,6 @@ const Cursos: React.FC = () => {
       return;
     }
 
-    // Verificação de CPF duplicado
-    try {
-      const cleanCPF = formData.cpf.replace(/\D/g, '');
-
-      const { data: existingCursos, error: searchError } = await supabase
-        .from('cursos')
-        .select('id, nome')
-        .eq('cpf', cleanCPF);
-
-      if (searchError && !searchError.message.includes('relation "public.cursos" does not exist')) {
-        console.error('Erro ao verificar CPF:', searchError);
-      } else if (existingCursos && existingCursos.length > 0) {
-        const existingCurso = existingCursos[0];
-        toast({
-          title: "CPF já cadastrado",
-          description: `Já existe uma inscrição de curso para este CPF em nome de ${existingCurso.nome}.`,
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-    } catch (cpfCheckError) {
-      console.warn('Erro na verificação de CPF:', cpfCheckError);
-    }
-
     try {
       // Remove máscaras dos campos antes de salvar e converte array de cursos em string
       const cleanedData = {
@@ -254,7 +229,13 @@ const Cursos: React.FC = () => {
       if (error) {
         console.error('Database error:', error);
 
-        if (error.message.includes('relation "public.cursos" does not exist')) {
+        if (error.code === '23505') {
+          toast({
+            title: "CPF já cadastrado",
+            description: "Já existe uma inscrição de curso cadastrada com este CPF.",
+            variant: "destructive"
+          });
+        } else if (error.message.includes('relation "public.cursos" does not exist')) {
           toast({
             title: "Banco não configurado",
             description: "Tabela de cursos não encontrada. Execute o script database-setup.sql no Supabase primeiro.",
