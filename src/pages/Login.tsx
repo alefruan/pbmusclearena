@@ -5,25 +5,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    // This is a mock login. In a real application, you would call your backend to authenticate.
-    if (username === 'pbmuscle' && password === 'pbmuscle2025') {
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/admin');
-    } else {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+
+    if (error) {
       toast({
         title: "Login ou senha inválidos",
         description: "Por favor, verifique suas credenciais e tente novamente.",
         variant: "destructive"
       });
+    } else {
+      navigate('/admin');
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleLogin();
   };
 
   return (
@@ -39,11 +47,13 @@ const Login: React.FC = () => {
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           <div>
-            <Label htmlFor="username">Usuário</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mt-1"
             />
           </div>
@@ -54,10 +64,13 @@ const Login: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="mt-1"
             />
           </div>
-          <Button onClick={handleLogin} className="w-full">Login</Button>
+          <Button onClick={handleLogin} disabled={loading} className="w-full">
+            {loading ? 'Entrando...' : 'Login'}
+          </Button>
         </CardContent>
       </Card>
     </div>

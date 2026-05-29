@@ -145,8 +145,8 @@ const Admin: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate('/login');
   };
 
@@ -1021,9 +1021,9 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
         alt="PB Muscle Arena Logo"
         className="w-full h-auto max-w-xs mx-auto mb-8"
       />
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <h1 className="text-2xl font-bold">Painel Administrativo</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             onClick={() => {
               setShowIngressos(false);
@@ -1057,7 +1057,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
       <div className="mb-6 space-y-4">
         {/* Status das Inscrições */}
         <div className="p-4 bg-card rounded-lg border">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold">Status das Inscrições</h3>
               <p className="text-sm text-muted-foreground">
@@ -1078,7 +1078,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
 
         {/* Status dos Ingressos */}
         <div className="p-4 bg-card rounded-lg border">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold">Status dos Ingressos</h3>
               <p className="text-sm text-muted-foreground">
@@ -1099,7 +1099,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
 
         {/* Status dos Cursos */}
         <div className="p-4 bg-card rounded-lg border">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold">Status dos Cursos</h3>
               <p className="text-sm text-muted-foreground">
@@ -1212,7 +1212,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
           </div>
         </div>
       </div>
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         {!showIngressos && !showCursos && (
           <>
             <Button
@@ -1230,7 +1230,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
               <Download className="h-4 w-4 mr-2" />
               {isBulkDownloading
                 ? `Baixando... ${bulkDownloadProgress.current}/${bulkDownloadProgress.total}`
-                : 'Baixar Todos os PDFs (ZIP)'}
+                : 'Baixar Todos PDFs (ZIP)'}
             </Button>
             <Button
               onClick={handleDownloadInscricoesCSV}
@@ -1239,7 +1239,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
               className="border-gray-400 text-gray-700 hover:bg-gray-100"
             >
               <FileDown className="h-4 w-4 mr-2" />
-              Exportar Inscrições CSV
+              Exportar CSV
             </Button>
             {selectedRegistrations.size > 0 && (
               <Button
@@ -1247,7 +1247,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
                 variant="destructive"
               >
                 <X className="h-4 w-4 mr-2" />
-                Excluir Selecionados ({selectedRegistrations.size})
+                Excluir ({selectedRegistrations.size})
               </Button>
             )}
           </>
@@ -1269,7 +1269,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
                 variant="destructive"
               >
                 <X className="h-4 w-4 mr-2" />
-                Excluir Selecionados ({selectedIngressos.size})
+                Excluir ({selectedIngressos.size})
               </Button>
             )}
           </>
@@ -1291,7 +1291,7 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
                 variant="destructive"
               >
                 <X className="h-4 w-4 mr-2" />
-                Excluir Selecionados ({selectedCursos.size})
+                Excluir ({selectedCursos.size})
               </Button>
             )}
           </>
@@ -1316,23 +1316,23 @@ PB MUSCLE ARENA - © 2024 - Todos os direitos reservados`;
               setSearchTerm(e.target.value);
             }
           }}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground w-full">
           <div className="flex items-center gap-2">
-            <span className="font-medium">Total de inscrições:</span>
+            <span className="font-medium">Inscrições:</span>
             <span className="bg-gray-100 text-black px-2 py-1 rounded-md font-semibold">
               {registrations.length}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-medium">Total de ingressos:</span>
+            <span className="font-medium">Ingressos:</span>
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold">
               {ingressos.length}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-medium">Total de cursos:</span>
+            <span className="font-medium">Cursos:</span>
             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-md font-semibold">
               {cursos.length}
             </span>

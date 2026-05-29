@@ -3,9 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
-import Login from "./pages/Login"; // Import the Login component
+import Login from "./pages/Login";
 import Regulamento from "./pages/Regulamento";
 import { VerifyRegistration } from "./pages/VerifyRegistration";
 import Ingressos from "./pages/Ingressos";
@@ -16,10 +18,26 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected route component
+// Protected route component using Supabase Auth session
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated');
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return null;
+  return authenticated ? children : <Navigate to="/login" />;
 };
 
 const App = () => (
