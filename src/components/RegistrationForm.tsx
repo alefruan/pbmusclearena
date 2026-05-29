@@ -219,43 +219,7 @@ export const RegistrationForm = () => {
       return;
     }
 
-    // Verificação de CPF duplicado
     try {
-      const cleanCPF = formData.cpf.replace(/\D/g, '');
-      console.log('Verificando CPF duplicado:', cleanCPF);
-
-      const { data: existingRegistrations, error: searchError } = await supabase
-        .from('registrations')
-        .select('id, nome')
-        .eq('cpf', cleanCPF);
-
-      if (searchError) {
-        console.warn('Erro ao verificar CPF existente:', searchError);
-        // Se houver erro na busca, continue com a inscrição
-        // mas apenas se não for um erro de tabela não existente
-        if (searchError.message.includes('relation "public.registrations" does not exist')) {
-          console.log('Tabela registrations não existe, continuando sem verificação');
-        }
-      } else if (existingRegistrations && existingRegistrations.length > 0) {
-        const existingRegistration = existingRegistrations[0];
-        toast({
-          title: "CPF já cadastrado",
-          description: `Já existe uma inscrição para este CPF em nome de ${existingRegistration.nome}.`,
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      } else {
-        console.log('CPF não encontrado no banco, pode continuar com a inscrição');
-      }
-    } catch (cpfCheckError) {
-      console.warn('Erro na verificação de CPF:', cpfCheckError);
-      // Continue com a inscrição mesmo com erro na verificação
-    }
-
-    try {
-      console.log('Sending data to database:', formData);
-
       // Remove campos que não existem no banco de dados e limpa campos de categoria
       const { regulamentoAceito, genero, categoria, subcategoria, ...dataForDB } = formData;
 
@@ -274,9 +238,7 @@ export const RegistrationForm = () => {
         subcategoria: ''
       };
 
-      console.log('Data for database (without regulamentoAceito and with empty categories):', dataForDBWithEmptyCategories);
-
-      const { data, error } = await supabase.from('registrations').insert([dataForDBWithEmptyCategories]).select();
+      const { error } = await supabase.from('registrations').insert([dataForDBWithEmptyCategories]);
 
       if (error) {
         console.error('Database error details:', error);
@@ -347,8 +309,6 @@ export const RegistrationForm = () => {
         setIsLoading(false);
         return;
       }
-
-      console.log('Data saved successfully:', data);
 
       try {
         // Gerar PDF local para download imediato
