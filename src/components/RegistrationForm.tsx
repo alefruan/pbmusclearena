@@ -76,6 +76,8 @@ export const RegistrationForm = () => {
   const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [cpfJaInscrito, setCpfJaInscrito] = useState(false);
+  const [verificandoCPF, setVerificandoCPF] = useState(false);
   const [formData, setFormData] = useState<RegistrationData>({
     nome: '',
     cpf: '',
@@ -115,6 +117,7 @@ export const RegistrationForm = () => {
     if (typeof value === 'string') {
       if (field === 'cpf') {
         value = formatCPF(value);
+        setCpfJaInscrito(false);
       } else if (field === 'telefone') {
         value = formatTelefone(value);
       }
@@ -124,6 +127,20 @@ export const RegistrationForm = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const verificarCPF = async (cpf: string) => {
+    const numericCPF = cpf.replace(/\D/g, '');
+    if (numericCPF.length < 11) return;
+    setVerificandoCPF(true);
+    try {
+      const { data } = await supabase.rpc('verify_registration', { p_cpf: numericCPF });
+      setCpfJaInscrito(!!(data && (data as unknown[]).length > 0));
+    } catch {
+      // ignora erros de rede na verificação prévia
+    } finally {
+      setVerificandoCPF(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -206,6 +223,23 @@ export const RegistrationForm = () => {
       });
       setIsLoading(false);
       return;
+    }
+
+    // Verificação de CPF duplicado (segurança no submit)
+    try {
+      const { data: existing } = await supabase.rpc('verify_registration', { p_cpf: numericCPF });
+      if (existing && (existing as unknown[]).length > 0) {
+        setCpfJaInscrito(true);
+        toast({
+          title: "CPF já inscrito",
+          description: "Este CPF já possui uma inscrição neste evento.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+    } catch {
+      // Se a verificação falhar, deixa o banco rejeitar via constraint
     }
 
     // Validação de email
@@ -388,10 +422,22 @@ export const RegistrationForm = () => {
                 id="cpf"
                 value={formData.cpf}
                 onChange={(e) => handleInputChange('cpf', e.target.value)}
-                className="mt-1"
+                onBlur={() => verificarCPF(formData.cpf)}
+                className={`mt-1 ${cpfJaInscrito ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 placeholder="000.000.000-00"
                 required
               />
+              {verificandoCPF && (
+                <p className="text-xs text-white/40 mt-1">Verificando CPF...</p>
+              )}
+              {cpfJaInscrito && !verificandoCPF && (
+                <p className="text-xs text-red-500 mt-1">
+                  CPF já inscrito neste evento.{' '}
+                  <Link to="/verificar" className="underline font-semibold">
+                    Ver minha inscrição
+                  </Link>
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="rg" className="text-sm font-medium">RG *</Label>
