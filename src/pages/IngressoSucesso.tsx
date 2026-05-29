@@ -6,7 +6,7 @@ import { CheckCircle, Ticket, ArrowLeft } from 'lucide-react';
 
 interface IngressoSucessoState {
   nomeCompleto: string;
-  ingressoId: number;
+  ingressoId?: number;
 }
 
 const IngressoSucesso: React.FC = () => {
@@ -51,10 +51,12 @@ const IngressoSucesso: React.FC = () => {
               Seu ingresso foi registrado com sucesso no nosso sistema.
             </p>
 
-            <div className="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-primary">
-              <p className="text-sm font-medium text-gray-700 mb-2">Número do Ingresso:</p>
-              <p className="text-2xl font-bold text-primary">#{String(ingressoId).padStart(6, '0')}</p>
-            </div>
+            {ingressoId && (
+              <div className="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-primary">
+                <p className="text-sm font-medium text-gray-700 mb-2">Número do Ingresso:</p>
+                <p className="text-2xl font-bold text-primary">#{String(ingressoId).padStart(6, '0')}</p>
+              </div>
+            )}
 
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>

@@ -201,10 +201,9 @@ const Ingressos: React.FC = () => {
         telefone: formData.telefone.replace(/\D/g, '')
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('ingressos')
-        .insert([cleanedData])
-        .select();
+        .insert([cleanedData]);
 
       if (error) {
         console.error('Database error:', error);
@@ -232,18 +231,10 @@ const Ingressos: React.FC = () => {
         return;
       }
 
-      console.log('Ingresso salvo com sucesso:', data);
-
       // Enviar email de confirmação
       try {
-        console.log('Enviando email de confirmação do ingresso...');
         const emailResponse = await supabase.functions.invoke('send-ingresso-email', {
-          body: {
-            ingressoData: {
-              ...formData,
-              ingressoId: data[0].id
-            }
-          }
+          body: { ingressoData: formData }
         });
 
         if (emailResponse.error) {
@@ -253,8 +244,6 @@ const Ingressos: React.FC = () => {
             description: "Ingresso cadastrado com sucesso, mas houve erro ao enviar o email de confirmação.",
             variant: "default"
           });
-        } else {
-          console.log('Email de ingresso enviado com sucesso');
         }
       } catch (emailError) {
         console.error('Erro no envio de email de ingresso:', emailError);
@@ -268,8 +257,7 @@ const Ingressos: React.FC = () => {
       // Redirecionar para página de sucesso
       navigate('/ingresso-sucesso', {
         state: {
-          nomeCompleto: formData.nome,
-          ingressoId: data[0].id
+          nomeCompleto: formData.nome
         }
       });
 
