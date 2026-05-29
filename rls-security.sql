@@ -19,7 +19,7 @@ CREATE POLICY "Admin can select registrations"
   ON registrations FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Anyone can insert registrations"
-  ON registrations FOR INSERT TO anon, authenticated WITH CHECK (true);
+  ON registrations FOR INSERT TO public WITH CHECK (true);
 
 CREATE POLICY "Admin can update registrations"
   ON registrations FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
@@ -43,7 +43,7 @@ CREATE POLICY "Admin can select ingressos"
   ON ingressos FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Anyone can insert ingressos"
-  ON ingressos FOR INSERT TO anon, authenticated WITH CHECK (true);
+  ON ingressos FOR INSERT TO public WITH CHECK (true);
 
 CREATE POLICY "Admin can update ingressos"
   ON ingressos FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
@@ -67,7 +67,7 @@ CREATE POLICY "Admin can select cursos"
   ON cursos FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Anyone can insert cursos"
-  ON cursos FOR INSERT TO anon, authenticated WITH CHECK (true);
+  ON cursos FOR INSERT TO public WITH CHECK (true);
 
 CREATE POLICY "Admin can update cursos"
   ON cursos FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
