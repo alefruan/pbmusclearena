@@ -95,7 +95,7 @@ const Index = () => {
 
       {/* ── Hero ── */}
       <div
-        className="relative min-h-[520px] md:min-h-[600px] bg-cover bg-center flex flex-col items-center justify-center"
+        className="relative min-h-[520px] md:min-h-[600px] bg-cover bg-center flex flex-col items-center justify-center overflow-hidden"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
         {/* dark gradient overlay */}
@@ -108,7 +108,7 @@ const Index = () => {
           <img
             src="https://pbmusclearena.com/wp-content/uploads/2025/08/pbmusclearena-500-x-80-px.png"
             alt="PB Muscle Arena Logo"
-            className="w-full h-auto max-w-xs md:max-w-sm mx-auto mb-4 drop-shadow-[0_0_18px_rgba(234,88,12,0.6)]"
+            className="w-full h-auto max-w-xs md:max-w-sm mx-auto mb-4"
           />
 
           <div className="inline-block bg-orange-500 text-white text-xs font-black px-4 py-1 rounded-full tracking-widest uppercase mb-4">
