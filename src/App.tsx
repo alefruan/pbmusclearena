@@ -14,6 +14,7 @@ import Ingressos from "./pages/Ingressos";
 import IngressoSucesso from "./pages/IngressoSucesso";
 import Cursos from "./pages/Cursos";
 import CursoSucesso from "./pages/CursoSucesso";
+import Status from "./pages/Status";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/ingresso-sucesso" element={<IngressoSucesso />} />
           <Route path="/cursos" element={<Cursos />} />
           <Route path="/curso-sucesso" element={<CursoSucesso />} />
+          <Route path="/status" element={<Status />} />
           <Route
             path="/admin"
             element={

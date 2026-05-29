@@ -194,16 +194,18 @@ const Ingressos: React.FC = () => {
     }
 
     try {
-      // Remove máscaras dos campos antes de salvar
-      const cleanedData = {
-        ...formData,
-        cpf: formData.cpf.replace(/\D/g, ''),
-        telefone: formData.telefone.replace(/\D/g, '')
-      };
+      const cleanCpf = formData.cpf.replace(/\D/g, '');
+      const cleanTelefone = formData.telefone.replace(/\D/g, '');
 
-      const { error } = await supabase
-        .from('ingressos')
-        .insert([cleanedData]);
+      // RPC insere o registro e retorna o ID sem exigir SELECT direto na tabela
+      const { data: newId, error } = await supabase.rpc('insert_ingresso', {
+        p_nome: formData.nome,
+        p_cpf: cleanCpf,
+        p_telefone: cleanTelefone,
+        p_email: formData.email,
+        p_cidade: formData.cidade,
+        p_uf: formData.uf,
+      });
 
       if (error) {
         console.error('Database error:', error);
@@ -231,10 +233,12 @@ const Ingressos: React.FC = () => {
         return;
       }
 
-      // Enviar email de confirmação
+      const ingressoId: number = newId;
+
+      // Enviar email de confirmação com o ID correto
       try {
         const emailResponse = await supabase.functions.invoke('send-ingresso-email', {
-          body: { ingressoData: formData }
+          body: { ingressoData: { ...formData, ingressoId } }
         });
 
         if (emailResponse.error) {
@@ -254,10 +258,11 @@ const Ingressos: React.FC = () => {
         });
       }
 
-      // Redirecionar para página de sucesso
+      // Redirecionar para página de sucesso com o ID
       navigate('/ingresso-sucesso', {
         state: {
-          nomeCompleto: formData.nome
+          nomeCompleto: formData.nome,
+          ingressoId
         }
       });
 

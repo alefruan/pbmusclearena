@@ -112,3 +112,33 @@ BEGIN
   WHERE cpf = p_cpf;
 END;
 $$;
+
+-- ========================================
+-- FUNÇÃO RPC: inserir ingresso e retornar ID
+-- Permite anônimos inserirem e obterem o ID sem SELECT direto na tabela
+-- ========================================
+DROP FUNCTION IF EXISTS insert_ingresso(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
+
+CREATE FUNCTION insert_ingresso(
+  p_nome TEXT,
+  p_cpf TEXT,
+  p_telefone TEXT,
+  p_email TEXT,
+  p_cidade TEXT,
+  p_uf TEXT
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  new_id INTEGER;
+BEGIN
+  INSERT INTO ingressos (nome, cpf, telefone, email, cidade, uf)
+  VALUES (p_nome, p_cpf, p_telefone, p_email, p_cidade, p_uf)
+  RETURNING id INTO new_id;
+
+  RETURN new_id;
+END;
+$$;
